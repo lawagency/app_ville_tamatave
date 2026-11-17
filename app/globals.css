@@ -1,26 +1,193 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Couleurs principales de la mairie */
+  --color-primary: #003b73; /* Bleu océan */
+  --color-primary-hover: #002b54; /* Bleu océan foncé */
+  --color-secondary: #00875a; /* Vert vanille */
+  --color-accent: #f4b400; /* Jaune or */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Couleurs de fond et texte */
+  --color-background: #f8fafc; /* Fond gris clair */
+  --color-surface: #ffffff; /* Fond des cartes */
+  --color-text-main: #1e293b; /* Texte principal */
+  --color-text-muted: #64748b; /* Texte secondaire */
+  --color-danger: #dc2626; /* Erreurs */
+  --color-border: #e2e8f0; /* Bordures */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Variables d'arrondi */
+  --radius-sm: 4px; /* Petit arrondi */
+  --radius-md: 4px; /* Arrondi moyen */
+  --radius-lg: 4px; /* Grand arrondi */
+
+  /* Animation des notifications */
+  --animate-slide-in: slide-in 0.25s ease-out;
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(110%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-main);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+@layer components {
+  /* Bouton principal */
+  .btn-primary {
+    @apply bg-[var(--color-primary)] text-white font-semibold py-2 px-4 
+           rounded-[var(--radius-md)] hover:bg-[var(--color-primary-hover)] transition-colors;
+  }
+
+  /* Bouton secondaire */
+  .btn-secondary {
+    @apply bg-[var(--color-secondary)] text-white font-semibold py-2 px-4 
+           rounded-[var(--radius-md)] hover:opacity-90 transition-opacity;
+  }
+
+  /* Champ de saisie */
+  .input-field {
+    @apply w-full border border-gray-300 py-2 px-3 
+           rounded-[var(--radius-md)] focus:outline-none focus:ring-2 
+           focus:ring-[var(--color-primary)] focus:border-transparent;
+  }
+
+  /* Carte */
+  .card {
+    @apply bg-[var(--color-surface)] border border-gray-100 p-6 
+           rounded-[var(--radius-lg)] shadow-sm;
+  }
+
+  /* Bouton discret */
+  .btn-ghost {
+    @apply text-primary font-semibold py-2 px-4 rounded-md
+           border border-border hover:bg-background transition-colors;
+  }
+
+  .btn-danger {
+    @apply text-danger font-semibold py-1 px-3 rounded-md
+           border border-danger hover:bg-danger hover:text-white transition-colors;
+  }
+
+  .label-field {
+    @apply block text-sm font-medium text-text-main mb-1;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-primary;
+  }
+
+  .alert-error {
+    @apply border border-danger text-danger bg-surface py-2 px-3 rounded-md text-sm;
+  }
+
+  .alert-info {
+    @apply border border-primary/30 text-primary bg-primary/5 py-2 px-3 rounded-md text-sm;
+  }
+
+  .alert-success {
+    @apply border border-secondary text-secondary bg-surface py-2 px-3 rounded-md text-sm;
+  }
+
+  /* Tableau */
+  .table-base {
+    @apply w-full text-sm text-left;
+  }
+  .table-base th {
+    @apply py-4 px-6 text-xs font-semibold uppercase tracking-wider whitespace-nowrap
+           text-text-muted border-y border-border bg-background;
+  }
+  .table-base td {
+    @apply py-4 px-6 border-b border-border text-text-main whitespace-nowrap;
+  }
+  /* Survol : fond bleuté + liseré bleu à gauche */
+  .table-base tbody tr {
+    @apply transition-all duration-150
+           hover:bg-primary/10 hover:shadow-[inset_4px_0_0_var(--color-primary)];
+  }
+  /* Ligne dont les détails sont ouverts : fond bleuté + liseré jaune à gauche */
+  .table-base tbody tr.row-selected {
+    @apply bg-primary/10 shadow-[inset_4px_0_0_var(--color-accent)]
+           hover:shadow-[inset_4px_0_0_var(--color-accent)];
+  }
+  .table-base tbody tr.row-details {
+    @apply bg-background hover:bg-background shadow-[inset_4px_0_0_var(--color-accent)];
+  }
+  .table-base tbody tr.row-details > td {
+    @apply px-8 py-6;
+  }
+
+  /* Pagination */
+  .page-btn {
+    @apply flex size-10 items-center justify-center rounded-full border border-border
+           text-sm text-text-muted transition-colors hover:border-primary hover:text-primary
+           disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-text-muted;
+  }
+  .page-btn-active {
+    @apply border-primary bg-primary text-white shadow-md hover:text-white;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-block py-0.5 px-2 text-xs font-semibold rounded-sm;
+  }
+  .badge-success {
+    @apply bg-secondary text-white;
+  }
+  .badge-warning {
+    @apply bg-accent text-text-main;
+  }
+  .badge-danger {
+    @apply bg-danger text-white;
+  }
+  .badge-muted {
+    @apply bg-border text-text-muted;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply flex items-center gap-3 py-2.5 px-4 rounded-md text-text-main
+           hover:bg-background hover:text-primary transition-colors;
+  }
+  .nav-section {
+    @apply px-4 mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted;
+  }
+  .nav-link-active {
+    @apply bg-primary/10 text-primary font-semibold;
+  }
+
+  /* Barre du haut */
+  .icon-btn {
+    @apply p-2 rounded-md text-text-muted hover:bg-background hover:text-primary transition-colors;
+  }
+  .search-result {
+    @apply flex w-full items-center gap-3 px-3 py-2 text-sm text-left rounded-md hover:bg-background;
+  }
+  .panel-section {
+    @apply px-5 pt-5 pb-2 text-xs font-bold uppercase tracking-wider text-text-muted;
+  }
+
+  /* Titre de section dans une carte */
+  .card-title {
+    @apply text-sm font-bold uppercase tracking-wider text-text-main;
+  }
+
+  .badge-primary {
+    @apply bg-primary text-white;
+  }
+
+  .btn-danger-solid {
+    @apply bg-danger text-white font-semibold py-2 px-4 rounded-md hover:opacity-90 transition-opacity;
+  }
 }
