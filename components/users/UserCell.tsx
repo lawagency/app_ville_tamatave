@@ -1,5 +1,6 @@
 import { BadgeCheck, CircleAlert, Mail, Phone, type LucideIcon } from "lucide-react";
 import { Avatar } from "@/components/ui";
+import { afficherTelephone } from "@/lib/formats";
 import type { User } from "@/types";
 
 /** Icône de vérification : verte si vérifié, grise sinon, rien si l'API ne le précise pas. */
@@ -65,6 +66,11 @@ export default function UserCell({ user }: { user: User }) {
 /** Colonne Téléphone : numéro avec sa vérification. */
 export function TelephoneCell({ user }: { user: User }) {
   return (
-    <Ligne icon={Phone} valeur={user.telephone} verifie={user.telephone_verifie} quoi="Téléphone" />
+    <Ligne
+      icon={Phone}
+      valeur={afficherTelephone(user.telephone) || null}
+      verifie={user.telephone_verifie}
+      quoi="Téléphone"
+    />
   );
 }

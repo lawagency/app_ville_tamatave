@@ -1,14 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import IdentifiantsConfig from "@/components/parametres/IdentifiantsConfig";
 import ParametresForm from "@/components/parametres/ParametresForm";
 import Skeleton from "@/components/Skeleton";
 import { PageHeader } from "@/components/ui";
-import { useCommunesStore } from "@/stores";
+import { peutVoir } from "@/lib/espaces";
+import { useAuthStore, useCommunesStore } from "@/stores";
 
 /** Configuration de la mairie : une seule commune, pas de tableau. */
 export default function ParametresPage() {
   const communes = useCommunesStore();
+  const user = useAuthStore((s) => s.user);
+  const voitCommune = peutVoir(user, "communes");
+  const voitIdentifiants = peutVoir(user, "identifiants");
 
   useEffect(() => {
     useCommunesStore.getState().fetchAll();
@@ -19,7 +24,7 @@ export default function ParametresPage() {
   return (
     <>
       <PageHeader
-        title="Paramètres"
+        title="Infos mairie"
         subtitle="Informations officielles de la mairie, utilisées sur les documents et le portail"
       />
 
@@ -44,10 +49,12 @@ export default function ParametresPage() {
         </div>
       )}
 
-      {!communes.loading && !communes.error && (
+      {voitCommune && !communes.loading && !communes.error && (
         // La clé recrée le formulaire avec les bonnes valeurs une fois la commune chargée
         <ParametresForm key={commune?.id ?? "nouvelle"} commune={commune} />
       )}
+
+      {voitIdentifiants && <IdentifiantsConfig />}
     </>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, Pencil, Plus, Trash2 } from "lucide-react";
-import LoadingButton from "@/components/LoadingButton";
-import Modal, { ConfirmDialog } from "@/components/Modal";
+import { Home, IdCard, Lock, Pencil, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import FormModal, { FormSection } from "@/components/FormModal";
+import { ConfirmDialog } from "@/components/Modal";
 import PermissionsMatrix from "@/components/roles/PermissionsMatrix";
 import PermissionsSummary from "@/components/roles/PermissionsSummary";
 import {
@@ -24,7 +24,21 @@ import { ACTIONS, MODULES, type Permissions, type Role } from "@/types";
 import { useAuthStore, useRolesStore, useUsersStore } from "@/stores";
 
 const SUPER_ADMIN = "super_admin";
+// Profil réservé à l'espace propriétaire : aucune permission d'administration
+const PROPRIETAIRE = "proprietaire";
 const TOTAL_PERMISSIONS = Object.keys(MODULES).length * Object.keys(ACTIONS).length;
+
+const TEXTE_PROPRIETAIRE =
+  "Ce rôle donne accès uniquement à l'espace propriétaire (/proprietaire). Il n'ouvre aucun module de l'administration : la gestion des propriétaires se fait par la mairie dans la page Propriétaires.";
+
+function EspaceProprietaire() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-accent/20 px-2 py-1 text-xs font-semibold text-text-main">
+      <Home className="size-3.5" />
+      Espace propriétaire
+    </span>
+  );
+}
 
 function countPermissions(p: Permissions) {
   return Object.values(p ?? {}).reduce(
@@ -89,6 +103,7 @@ export default function RolesPage() {
   }
 
   const isSuperAdmin = editing?.code === SUPER_ADMIN;
+  const isProprietaire = editing?.code === PROPRIETAIRE;
 
   return (
     <>
@@ -130,6 +145,7 @@ export default function RolesPage() {
           {
             label: "Espaces",
             render: (r) => {
+              if (r.code === PROPRIETAIRE) return <EspaceProprietaire />;
               const espaces =
                 r.code === SUPER_ADMIN ? ESPACES : espacesDesPermissions(r.permissions);
               if (espaces.length === 0) return <span className="text-text-muted">Aucun</span>;
@@ -151,7 +167,9 @@ export default function RolesPage() {
           {
             label: "Permissions",
             render: (r) =>
-              r.code === SUPER_ADMIN ? (
+              r.code === PROPRIETAIRE ? (
+                <span className="text-text-muted">Sans objet</span>
+              ) : r.code === SUPER_ADMIN ? (
                 <Progress value={1} max={1} tone="success" label="Total" />
               ) : (
                 <Progress
@@ -202,7 +220,9 @@ export default function RolesPage() {
           >
             <div>
               <p className="card-title mb-3">Permissions accordées</p>
-              {r.code === SUPER_ADMIN ? (
+              {r.code === PROPRIETAIRE ? (
+                <p className="alert-info">{TEXTE_PROPRIETAIRE}</p>
+              ) : r.code === SUPER_ADMIN ? (
                 <p className="alert-info">Super administrateur : accès à tous les modules.</p>
               ) : (
                 <PermissionsSummary permissions={r.permissions} />
@@ -212,57 +232,49 @@ export default function RolesPage() {
         )}
       />
 
-      <Modal
-        open={formOpen}
-        title={editing ? `Modifier le rôle : ${editing.nom}` : "Nouveau rôle"}
-        onClose={closeModals}
+      <FormModal
         size="lg"
+        open={formOpen}
+        title={editing ? "Modifier le rôle" : "Nouveau rôle"}
+        subtitle={editing?.nom ?? "Cochez un espace pour tout lui accorder, puis affinez."}
+        onClose={closeModals}
+        onSubmit={onSubmit}
+        submitLabel={editing ? "Enregistrer" : "Créer"}
+        pending={enregistrement.pending}
+        formKey={editing?.id ?? "nouveau"}
       >
-        <form key={editing?.id ?? "new"} onSubmit={onSubmit} className="space-y-4">
-          {editing?.est_systeme && (
-            <p className="alert-info flex items-center gap-2">
-              <Lock className="size-4 shrink-0" />
-              Rôle système : son code ne peut pas être modifié et il ne peut pas être supprimé.
-            </p>
-          )}
+        {editing?.est_systeme && (
+          <p className="alert-info flex items-center gap-2">
+            <Lock className="size-4 shrink-0" />
+            Rôle système : son code ne peut pas être modifié et il ne peut pas être supprimé.
+          </p>
+        )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Code *">
-              <input
-                name="code"
-                required
-                pattern="[a-z_]+"
-                title="Minuscules et _ uniquement"
-                defaultValue={editing?.code}
-                disabled={!!editing}
-                className="input-field disabled:bg-background disabled:text-text-muted"
-              />
-            </Field>
-            <Field label="Nom *">
-              <input name="nom" required defaultValue={editing?.nom} className="input-field" />
-            </Field>
-          </div>
-          <Field label="Description">
+        <FormSection title="Informations" icon={IdCard}>
+          <Field label="Code *">
             <input
-              name="description"
-              defaultValue={editing?.description ?? ""}
-              className="input-field"
+              name="code"
+              required
+              pattern="[a-z_]+"
+              title="Minuscules et _ uniquement"
+              defaultValue={editing?.code}
+              disabled={!!editing}
+              className="input-field disabled:bg-background disabled:text-text-muted"
             />
           </Field>
-
-          <div>
-            <span className="label-field">Permissions</span>
-            {isSuperAdmin ? (
-              <p className="alert-info">
-                Le super administrateur a accès à tous les modules, ses permissions ne sont pas
-                modifiables.
-              </p>
-            ) : (
-              <PermissionsMatrix value={permissions} onChange={setPermissions} />
-            )}
+          <Field label="Nom *">
+            <input name="nom" required defaultValue={editing?.nom} className="input-field" />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field label="Description">
+              <input
+                name="description"
+                defaultValue={editing?.description ?? ""}
+                className="input-field"
+              />
+            </Field>
           </div>
-
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
             <input
               type="checkbox"
               name="actif"
@@ -271,22 +283,21 @@ export default function RolesPage() {
             />
             Rôle actif
           </label>
+        </FormSection>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={closeModals}
-              disabled={enregistrement.pending}
-              className="btn-ghost"
-            >
-              Annuler
-            </button>
-            <LoadingButton type="submit" loading={enregistrement.pending} className="btn-primary">
-              {editing ? "Enregistrer" : "Créer"}
-            </LoadingButton>
-          </div>
-        </form>
-      </Modal>
+        <FormSection title="Espaces et permissions" icon={ShieldCheck} columns={1}>
+          {isProprietaire ? (
+            <p className="alert-info">{TEXTE_PROPRIETAIRE}</p>
+          ) : isSuperAdmin ? (
+            <p className="alert-info">
+              Le super administrateur a accès à tous les modules, ses permissions ne sont pas
+              modifiables.
+            </p>
+          ) : (
+            <PermissionsMatrix value={permissions} onChange={setPermissions} />
+          )}
+        </FormSection>
+      </FormModal>
 
       <ConfirmDialog
         open={deleting !== null}

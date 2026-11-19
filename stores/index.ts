@@ -6,3 +6,7 @@ export { useRolesStore } from "./rolesStore";
 export { useCommunesStore } from "./communesStore";
 export { useProprietairesStore } from "./proprietairesStore";
 export { useControlesStore } from "./controlesStore";
+export { useUnitesControleStore } from "./unitesControleStore";
+export { useCategoriesServicesStore } from "./categoriesServicesStore";
+export { useParametresIdentifiantsStore } from "./parametresIdentifiantsStore";
+export { useMaFicheStore } from "./maFicheStore";

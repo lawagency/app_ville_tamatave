@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Car } from "lucide-react";
+import { Car, ClipboardCheck, Link2, MapPin, Plus, TriangleAlert, X } from "lucide-react";
 import ControleDetails from "@/components/controles/ControleDetails";
 import ResultatDot from "@/components/controles/ResultatDot";
-import LoadingButton from "@/components/LoadingButton";
-import { CellTitle, DataTable, Field, PageHeader } from "@/components/ui";
+import FormModal, { FormSection } from "@/components/FormModal";
+import { CellTitle, DataTable, Field, FilterTabs, PageHeader, type Tone } from "@/components/ui";
 import { formatDate, readForm } from "@/lib/api";
+import { peutVoir } from "@/lib/espaces";
 import { useAction } from "@/lib/useAction";
 import {
   GRAVITES,
@@ -14,8 +15,9 @@ import {
   TYPES_ANOMALIE,
   TYPES_CONTROLE,
   type Anomalie,
+  type Controle,
 } from "@/types";
-import { useControlesStore } from "@/stores";
+import { useAuthStore, useControlesStore, useUnitesControleStore } from "@/stores";
 
 const NOUVELLE_ANOMALIE: Anomalie = {
   type_anomalie: "document_manquant",
@@ -32,21 +34,45 @@ const NUMBER_FIELDS = [
   "longitude",
 ];
 
+type Onglet = "tous" | Controle["resultat"];
+
 export default function ControlesPage() {
   const controles = useControlesStore();
-  const [showForm, setShowForm] = useState(false);
+  const unites = useUnitesControleStore((s) => s.items);
+  const voitUnites = useAuthStore((s) => peutVoir(s.user, "unites"));
+  const [formOpen, setFormOpen] = useState(false);
   const [anomalies, setAnomalies] = useState<Anomalie[]>([]);
   const enregistrement = useAction();
-  const [filtre, setFiltre] = useState("");
+  const [onglet, setOnglet] = useState<Onglet>("tous");
 
   useEffect(() => {
     useControlesStore.getState().fetchAll();
   }, []);
 
-  const rows = filtre ? controles.items.filter((c) => c.resultat === filtre) : controles.items;
+  useEffect(() => {
+    if (voitUnites) useUnitesControleStore.getState().fetchAll();
+  }, [voitUnites]);
+
+  const rows =
+    onglet === "tous" ? controles.items : controles.items.filter((c) => c.resultat === onglet);
+
+  const onglets: { key: Onglet; label: string; tone: Tone; count: number }[] = [
+    { key: "tous", label: "Tous", tone: "primary", count: controles.items.length },
+    ...(Object.keys(RESULTATS_CONTROLE) as Controle["resultat"][]).map((key) => ({
+      key,
+      label: RESULTATS_CONTROLE[key].label,
+      tone: RESULTATS_CONTROLE[key].tone as Tone,
+      count: controles.items.filter((c) => c.resultat === key).length,
+    })),
+  ];
 
   function updateAnomalie(index: number, patch: Partial<Anomalie>) {
     setAnomalies((list) => list.map((a, i) => (i === index ? { ...a, ...patch } : a)));
+  }
+
+  function ouvrir() {
+    setAnomalies([]);
+    setFormOpen(true);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -60,11 +86,7 @@ export default function ControlesPage() {
         }),
       "Contrôle enregistré",
     );
-    if (ok) {
-      form.reset();
-      setAnomalies([]);
-      setShowForm(false);
-    }
+    if (ok) setFormOpen(false);
   }
 
   return (
@@ -73,83 +95,102 @@ export default function ControlesPage() {
         title="Contrôles"
         subtitle="Historique des contrôles effectués"
         action={
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className={showForm ? "btn-ghost" : "btn-primary"}
-          >
-            {showForm ? "Annuler" : "Nouveau contrôle"}
+          <button onClick={ouvrir} className="btn-primary flex items-center gap-2">
+            <Plus className="size-4" />
+            Nouveau contrôle
           </button>
         }
       />
 
-      {showForm && (
-        <form onSubmit={onSubmit} className="card mb-6 space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            <Field label="Type de contrôle *">
-              <select name="type_controle" required className="input-field" defaultValue="terrain">
-                {Object.entries(TYPES_CONTROLE).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
+      <FormModal
+        size="lg"
+        open={formOpen}
+        title="Nouveau contrôle"
+        subtitle="Les champs marqués * sont obligatoires."
+        onClose={() => setFormOpen(false)}
+        onSubmit={onSubmit}
+        submitLabel="Enregistrer le contrôle"
+        pending={enregistrement.pending}
+      >
+        <FormSection title="Contrôle" icon={ClipboardCheck}>
+          <Field label="Type de contrôle *">
+            <select name="type_controle" required className="input-field" defaultValue="terrain">
+              {Object.entries(TYPES_CONTROLE).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Résultat *">
+            <select name="resultat" required className="input-field" defaultValue="en_verification">
+              {Object.entries(RESULTATS_CONTROLE).map(([value, r]) => (
+                <option key={value} value={value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Unité de contrôle">
+            {voitUnites ? (
+              <select name="corps_controle_id" className="input-field" defaultValue="">
+                <option value="">Aucune</option>
+                {unites.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.nom}
                   </option>
                 ))}
               </select>
-            </Field>
-            <Field label="Résultat *">
-              <select
-                name="resultat"
-                required
-                className="input-field"
-                defaultValue="en_verification"
-              >
-                {Object.entries(RESULTATS_CONTROLE).map(([value, r]) => (
-                  <option key={value} value={value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Identifiant agent">
-              <input name="agent_identifiant" className="input-field" />
-            </Field>
-            <Field label="ID véhicule">
-              <input name="vehicule_id" type="number" min={1} className="input-field" />
-            </Field>
-            <Field label="ID chauffeur">
-              <input name="chauffeur_id" type="number" min={1} className="input-field" />
-            </Field>
-            <Field label="ID propriétaire">
-              <input name="proprietaire_id" type="number" min={1} className="input-field" />
-            </Field>
-            <Field label="ID corps de contrôle">
+            ) : (
               <input name="corps_controle_id" type="number" min={1} className="input-field" />
-            </Field>
-            <Field label="Latitude">
-              <input name="latitude" type="number" step="any" className="input-field" />
-            </Field>
-            <Field label="Longitude">
-              <input name="longitude" type="number" step="any" className="input-field" />
+            )}
+          </Field>
+          <Field label="Identifiant agent">
+            <input name="agent_identifiant" className="input-field" />
+          </Field>
+        </FormSection>
+
+        <FormSection title="Concerné" icon={Link2}>
+          <Field label="N° véhicule">
+            <input name="vehicule_id" type="number" min={1} className="input-field" />
+          </Field>
+          <Field label="N° chauffeur">
+            <input name="chauffeur_id" type="number" min={1} className="input-field" />
+          </Field>
+          <Field label="N° propriétaire">
+            <input name="proprietaire_id" type="number" min={1} className="input-field" />
+          </Field>
+        </FormSection>
+
+        <FormSection title="Lieu et observations" icon={MapPin}>
+          <Field label="Latitude">
+            <input name="latitude" type="number" step="any" className="input-field" />
+          </Field>
+          <Field label="Longitude">
+            <input name="longitude" type="number" step="any" className="input-field" />
+          </Field>
+          <div className="sm:col-span-2">
+            <Field label="Observations">
+              <textarea name="observations" rows={3} className="input-field" />
             </Field>
           </div>
-          <Field label="Observations">
-            <textarea name="observations" rows={3} className="input-field" />
-          </Field>
+        </FormSection>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">Anomalies ({anomalies.length})</h3>
-              <button
-                type="button"
-                onClick={() => setAnomalies((list) => [...list, NOUVELLE_ANOMALIE])}
-                className="btn-ghost"
-              >
-                Ajouter une anomalie
-              </button>
-            </div>
-            {anomalies.map((a, i) => (
-              <div
-                key={i}
-                className="grid gap-3 md:grid-cols-[1fr_1fr_2fr_auto] items-end border border-border rounded-md p-3"
-              >
+        <FormSection title={`Anomalies (${anomalies.length})`} icon={TriangleAlert} columns={1}>
+          {anomalies.map((a, i) => (
+            <div key={i} className="space-y-3 rounded-md border border-border bg-background p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Anomalie {i + 1}</p>
+                <button
+                  type="button"
+                  onClick={() => setAnomalies((list) => list.filter((_, j) => j !== i))}
+                  className="icon-btn hover:text-danger"
+                  aria-label="Retirer l'anomalie"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Field label="Type">
                   <select
                     value={a.type_anomalie}
@@ -182,48 +223,33 @@ export default function ControlesPage() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Description *">
-                  <input
-                    required
-                    value={a.description}
-                    onChange={(e) => updateAnomalie(i, { description: e.target.value })}
-                    className="input-field"
-                  />
-                </Field>
-                <button
-                  type="button"
-                  onClick={() => setAnomalies((list) => list.filter((_, j) => j !== i))}
-                  className="btn-danger"
-                >
-                  Retirer
-                </button>
               </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end">
-            <LoadingButton type="submit" loading={enregistrement.pending} className="btn-primary">
-              Enregistrer le contrôle
-            </LoadingButton>
-          </div>
-        </form>
-      )}
-
-      <div className="mb-4 max-w-xs">
-        <select value={filtre} onChange={(e) => setFiltre(e.target.value)} className="input-field">
-          <option value="">Tous les résultats</option>
-          {Object.entries(RESULTATS_CONTROLE).map(([value, r]) => (
-            <option key={value} value={value}>
-              {r.label}
-            </option>
+              <Field label="Description *">
+                <input
+                  required
+                  value={a.description}
+                  onChange={(e) => updateAnomalie(i, { description: e.target.value })}
+                  className="input-field"
+                />
+              </Field>
+            </div>
           ))}
-        </select>
-      </div>
+          <button
+            type="button"
+            onClick={() => setAnomalies((list) => [...list, NOUVELLE_ANOMALIE])}
+            className="btn-ghost inline-flex w-fit items-center gap-2 text-sm"
+          >
+            <Plus className="size-4" />
+            Ajouter une anomalie
+          </button>
+        </FormSection>
+      </FormModal>
 
       <DataTable
         loading={controles.loading}
         error={controles.error}
         rows={rows}
+        toolbar={<FilterTabs value={onglet} onChange={setOnglet} tabs={onglets} />}
         columns={[
           {
             label: "Véhicule",

@@ -19,6 +19,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(String(form.get("email")), String(form.get("password")));
+      // Les propriétaires ont leur propre plateforme
+      if (useAuthStore.getState().user?.role === "proprietaire") {
+        useAuthStore.getState().logout();
+        throw new Error(
+          "Compte propriétaire : connectez-vous sur l'espace propriétaire (/proprietaire).",
+        );
+      }
       router.replace("/admin/espaces");
     } catch (err) {
       setError((err as Error).message);

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Bell, ChevronDown, LogOut, Maximize, Menu, Minimize, Search } from "lucide-react";
 import { useAuthStore, useControlesStore, useProprietairesStore, useUiStore } from "@/stores";
 import { peutVoir } from "@/lib/espaces";
-import EspaceSwitcher from "./EspaceSwitcher";
 import SearchBar from "./SearchBar";
 import { useAlertes } from "./useAlertes";
 
@@ -103,8 +102,6 @@ export default function Topbar() {
             <button onClick={() => setSearching(true)} className="icon-btn" aria-label="Rechercher">
               <Search className="size-5" />
             </button>
-            <span className="mx-2 h-8 w-px bg-border" />
-            <EspaceSwitcher />
           </div>
 
           <div className="ml-auto flex items-center gap-4">

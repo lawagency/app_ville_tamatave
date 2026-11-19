@@ -1,9 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ban, Check, Pencil, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
-import LoadingButton from "@/components/LoadingButton";
-import Modal, { ConfirmDialog } from "@/components/Modal";
+import Link from "next/link";
+import {
+  Ban,
+  Check,
+  KeyRound,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Search,
+  Trash2,
+  UserRound,
+  X,
+} from "lucide-react";
+import FormModal, { FormSection } from "@/components/FormModal";
+import { ConfirmDialog } from "@/components/Modal";
 import PasswordInput from "@/components/PasswordInput";
 import PermissionsSummary from "@/components/roles/PermissionsSummary";
 import RoleBadge from "@/components/roles/RoleBadge";
@@ -19,7 +31,9 @@ import {
   RowActions,
   type Tone,
 } from "@/components/ui";
+import { TelephoneInput } from "@/components/FormatInput";
 import { formatDate, formatDateTime, readForm } from "@/lib/api";
+import { afficherTelephone } from "@/lib/formats";
 import { useAction } from "@/lib/useAction";
 import { STATUTS_USER, type StatutUser, type User } from "@/types";
 import { useRolesStore, useUsersStore } from "@/stores";
@@ -270,7 +284,7 @@ export default function UtilisateursPage() {
                 { label: "Nom", value: u.nom.toUpperCase() },
                 { label: "Prénom", value: u.prenom },
                 { label: "Email", value: u.email },
-                { label: "Téléphone", value: u.telephone },
+                { label: "Téléphone", value: afficherTelephone(u.telephone) },
                 { label: "Rôle", value: <RoleBadge role={role} roles={roles} /> },
                 { label: "Dernière connexion", value: formatDateTime(u.derniere_connexion) },
                 { label: "Date de validation", value: formatDateTime(u.date_validation) },
@@ -303,94 +317,78 @@ export default function UtilisateursPage() {
         }}
       />
 
-      <Modal
+      <FormModal
         open={formOpen}
         title={editing ? "Modifier l'utilisateur" : "Nouvel utilisateur"}
+        subtitle={editing ? nomDe(editing) : "Le compte sera créé en attente de validation."}
         onClose={closeModals}
+        onSubmit={onSubmit}
+        submitLabel={editing ? "Enregistrer" : "Créer le compte"}
+        pending={enregistrement.pending}
+        formKey={editing?.id ?? "nouveau"}
       >
-        <form key={editing?.id ?? "new"} onSubmit={onSubmit} className="space-y-6">
-          <fieldset className="space-y-4">
-            <legend className="card-title mb-3">Identité</legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nom *">
-                <input name="nom" required defaultValue={editing?.nom} className="input-field" />
-              </Field>
-              <Field label="Prénom *">
-                <input
-                  name="prenom"
-                  required
-                  defaultValue={editing?.prenom}
-                  className="input-field"
-                />
-              </Field>
-            </div>
-            <Field label="Téléphone">
-              <input
-                name="telephone"
-                type="tel"
-                defaultValue={editing?.telephone ?? ""}
-                placeholder="034 00 000 00"
-                className="input-field"
-              />
-            </Field>
-          </fieldset>
+        <FormSection title="Identité" icon={UserRound}>
+          <Field label="Nom *">
+            <input name="nom" required defaultValue={editing?.nom} className="input-field" />
+          </Field>
+          <Field label="Prénom *">
+            <input name="prenom" required defaultValue={editing?.prenom} className="input-field" />
+          </Field>
+          <Field label="Téléphone">
+            <TelephoneInput name="telephone" defaultValue={editing?.telephone} />
+          </Field>
+        </FormSection>
 
-          <fieldset className="space-y-4">
-            <legend className="card-title mb-3">Connexion et accès</legend>
-            <Field label="Email *">
-              <input
-                name="email"
-                type="email"
-                required
-                defaultValue={editing?.email}
-                disabled={!!editing}
-                className="input-field disabled:bg-background disabled:text-text-muted"
-              />
-            </Field>
-            <Field label={editing ? "Nouveau mot de passe" : "Mot de passe *"}>
-              <PasswordInput
-                name="password"
-                autoComplete="new-password"
-                required={!editing}
-                minLength={6}
-                placeholder={editing ? "Laisser vide pour ne pas changer" : "6 caractères minimum"}
-                className="input-field"
-              />
-            </Field>
-            <Field label="Rôle *">
-              <select
-                name="role_id"
-                required
-                defaultValue={editing?.role_id ?? ""}
-                className="input-field"
-              >
-                <option value="" disabled>
-                  Choisir un rôle
-                </option>
-                {roles.map((r) => (
+        <FormSection title="Connexion et accès" icon={KeyRound}>
+          <Field label="Email *">
+            <input
+              name="email"
+              type="email"
+              required
+              defaultValue={editing?.email}
+              disabled={!!editing}
+              className="input-field disabled:bg-background disabled:text-text-muted"
+            />
+          </Field>
+          <Field label={editing ? "Nouveau mot de passe" : "Mot de passe *"}>
+            <PasswordInput
+              name="password"
+              autoComplete="new-password"
+              required={!editing}
+              minLength={6}
+              placeholder={editing ? "Laisser vide pour ne pas changer" : "6 caractères minimum"}
+              className="input-field"
+            />
+          </Field>
+          <Field label="Rôle *">
+            <select
+              name="role_id"
+              required
+              defaultValue={editing?.role_id ?? ""}
+              className="input-field"
+            >
+              <option value="" disabled>
+                Choisir un rôle
+              </option>
+              {/* Les comptes propriétaires se créent depuis la page Propriétaires (fiche liée) */}
+              {roles
+                .filter((r) => r.code !== "proprietaire" || r.id === editing?.role_id)
+                .map((r) => (
                   <option key={r.id} value={r.id}>
                     {r.nom}
                   </option>
                 ))}
-              </select>
-            </Field>
-          </fieldset>
-
-          <div className="flex justify-end gap-3 border-t border-border pt-4">
-            <button
-              type="button"
-              onClick={closeModals}
-              disabled={enregistrement.pending}
-              className="btn-ghost"
-            >
-              Annuler
-            </button>
-            <LoadingButton type="submit" loading={enregistrement.pending} className="btn-primary">
-              {editing ? "Enregistrer" : "Créer le compte"}
-            </LoadingButton>
-          </div>
-        </form>
-      </Modal>
+            </select>
+          </Field>
+          <p className="text-xs text-text-muted sm:col-span-2">
+            Le compte d&apos;un propriétaire se crée depuis sa fiche, dans la page{" "}
+            <Link href="/admin/proprietaires" className="font-semibold text-primary">
+              Propriétaires
+            </Link>{" "}
+            (menu ⋮ → Créer son compte).
+          </p>
+        </FormSection>
+      </FormModal>
 
       <ConfirmDialog
         open={deleting !== null}

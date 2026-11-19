@@ -15,7 +15,10 @@ export type Role = {
 export const MODULES = {
   users: "Utilisateurs",
   roles: "Rôles",
-  communes: "Paramètres",
+  communes: "Infos mairie",
+  identifiants: "Format des identifiants",
+  unites: "Unités de contrôle",
+  categories: "Catégories de services",
   proprietaires: "Propriétaires",
   controles: "Contrôles",
 };

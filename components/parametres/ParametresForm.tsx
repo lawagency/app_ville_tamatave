@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { Building2, FileText, Phone } from "lucide-react";
+import { TelephoneInput } from "@/components/FormatInput";
 import LoadingButton from "@/components/LoadingButton";
 import { Field } from "@/components/ui";
 import { fichierUrl } from "@/lib/api";
@@ -97,13 +98,7 @@ export default function ParametresForm({ commune }: { commune?: Commune }) {
 
           <Section icon={Phone} titre="Contact">
             <Field label="Téléphone">
-              <input
-                name="telephone"
-                type="tel"
-                defaultValue={valeur("telephone")}
-                placeholder="+261 20 53 000 00"
-                className="input-field"
-              />
+              <TelephoneInput name="telephone" defaultValue={valeur("telephone")} />
             </Field>
             <Field label="Email">
               <input

@@ -21,11 +21,26 @@ function initiales(texte: string) {
     .join("");
 }
 
-/** Pastille ronde avec initiales ou icône. */
-export function Avatar({ label, icon }: { label: string; icon?: ReactNode }) {
+type AvatarProps = {
+  label: string;
+  icon?: ReactNode;
+  /** URL de la photo ; à défaut, l'icône ou les initiales. */
+  photo?: string | null;
+  className?: string;
+};
+
+/** Pastille ronde : photo, sinon icône, sinon initiales. */
+export function Avatar({ label, icon, photo, className = "size-11" }: AvatarProps) {
   return (
-    <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border bg-background text-sm font-bold text-primary">
-      {icon ?? initiales(label)}
+    <span
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-background text-sm font-bold text-primary ${className}`}
+    >
+      {photo ? (
+        // eslint-disable-next-line @next/next/no-img-element -- image servie par l'API
+        <img src={photo} alt={label} className="size-full object-cover" />
+      ) : (
+        (icon ?? initiales(label))
+      )}
     </span>
   );
 }
@@ -34,13 +49,14 @@ type CellTitleProps = {
   title: string;
   subtitle?: ReactNode;
   icon?: ReactNode;
+  photo?: string | null;
 };
 
 /** Première colonne : avatar + nom en gras + information secondaire. */
-export function CellTitle({ title, subtitle, icon }: CellTitleProps) {
+export function CellTitle({ title, subtitle, icon, photo }: CellTitleProps) {
   return (
     <div className="flex items-center gap-4">
-      <Avatar label={title} icon={icon} />
+      <Avatar label={title} icon={icon} photo={photo} />
       <div className="min-w-0">
         <p className="truncate font-semibold text-text-main">{title}</p>
         {subtitle && <p className="truncate text-sm text-text-muted">{subtitle}</p>}

@@ -1,4 +1,4 @@
-import { ESPACES } from "@/lib/espaces";
+import { ESPACES, modulesDeLEspace } from "@/lib/espaces";
 import { ACTIONS, MODULES, type Permissions } from "@/types";
 
 type Module = keyof typeof MODULES;
@@ -10,9 +10,7 @@ export default function PermissionsSummary({ permissions }: { permissions: Permi
     <div className="grid gap-4 lg:grid-cols-2">
       {ESPACES.map((espace) => {
         const Icon = espace.icon;
-        const modules = espace.links
-          .map((l) => l.module)
-          .filter((m): m is Module => !!m && m in MODULES);
+        const modules = modulesDeLEspace(espace).filter((m): m is Module => m in MODULES);
         const ouvert = modules.some((m) => permissions?.[m]?.voir);
 
         return (

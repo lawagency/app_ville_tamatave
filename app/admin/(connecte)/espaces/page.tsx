@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftRight, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import EspaceCard from "@/components/espaces/EspaceCard";
 import { accueilDe, useEspaces } from "@/lib/espaces";
 import { useAuthStore, useUiStore } from "@/stores";
@@ -26,67 +26,38 @@ export default function EspacesPage() {
 
   if (unSeulEspace) return null;
 
-  const initiales = user ? `${user.prenom[0] ?? ""}${user.nom[0] ?? ""}`.toUpperCase() : "?";
-
   return (
-    <div className="flex min-h-screen flex-1 flex-col bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-6">
-          <span className="flex size-10 items-center justify-center rounded-md bg-primary font-extrabold text-accent">
-            VT
-          </span>
-          <div className="leading-tight">
-            <p className="font-bold text-primary">Ville de Toamasina</p>
-            <p className="text-xs text-text-muted">Suivi de la circulation</p>
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <div className="hidden text-right leading-tight sm:block">
-              <p className="text-sm font-semibold">
-                {user?.prenom} {user?.nom}
-              </p>
-              <p className="text-xs text-text-muted">{user?.role}</p>
-            </div>
-            <span className="flex size-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-accent">
-              {initiales}
-            </span>
-            <button
-              onClick={logout}
-              title="Déconnexion"
-              aria-label="Déconnexion"
-              className="icon-btn"
-            >
-              <LogOut className="size-5" />
-            </button>
-          </div>
-        </div>
+    <div className="flex min-h-screen flex-1 flex-col bg-linear-to-br from-primary to-primary-hover text-white">
+      <header className="flex items-center justify-between px-8 py-6 lg:px-12">
+        <p className="font-bold uppercase tracking-[0.2em] text-white/70">Ville de Toamasina</p>
+        <button
+          onClick={logout}
+          className="inline-flex items-center gap-2 rounded-md bg-surface px-4 py-2 text-sm font-semibold text-primary transition-opacity hover:opacity-90"
+        >
+          <LogOut className="size-4" />
+          Déconnexion
+        </button>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
-        <div className="text-center">
-          <h1 className="page-title text-3xl">Bonjour {user?.prenom}</h1>
-          <p className="mt-2 text-text-muted">
+      <main className="flex flex-1 items-center px-8 pb-24 lg:px-12">
+        <div className="mx-auto w-full max-w-5xl">
+          <h1 className="text-4xl font-bold">Bonjour {user?.prenom}</h1>
+          <p className="mt-2 text-white/70">
             Choisissez l&apos;espace dans lequel vous souhaitez travailler.
           </p>
-          <div className="mx-auto mt-4 h-1 w-12 rounded-sm bg-accent" />
+
+          {espaces.length === 0 ? (
+            <p className="mt-10 rounded-md border border-white/20 bg-white/5 p-4 text-sm">
+              Votre rôle ne donne accès à aucun espace. Contactez un administrateur.
+            </p>
+          ) : (
+            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {espaces.map((espace) => (
+                <EspaceCard key={espace.id} espace={espace} recent={espace.id === dernierEspace} />
+              ))}
+            </div>
+          )}
         </div>
-
-        {espaces.length === 0 ? (
-          <p className="alert-error mx-auto mt-10 max-w-lg text-center">
-            Votre rôle ne donne accès à aucun espace. Contactez un administrateur.
-          </p>
-        ) : (
-          <div className="mx-auto mt-10 grid max-w-3xl gap-8 md:grid-cols-2">
-            {espaces.map((espace) => (
-              <EspaceCard key={espace.id} espace={espace} recent={espace.id === dernierEspace} />
-            ))}
-          </div>
-        )}
-
-        <p className="mt-10 flex items-center justify-center gap-2 text-xs text-text-muted">
-          <ArrowLeftRight className="size-3.5" />
-          Vous pourrez changer d&apos;espace à tout moment depuis la barre du haut.
-        </p>
       </main>
     </div>
   );

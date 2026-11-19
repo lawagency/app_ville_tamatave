@@ -1,6 +1,7 @@
 import {
   ClipboardCheck,
   Landmark,
+  Siren,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -18,7 +19,12 @@ export type NavLink = {
   icon: LucideIcon;
   /** Module de permission requis (`<module>.voir`). Absent : visible par tout l'espace. */
   module?: string;
+  /** Autres modules gérés dans la même page ; l'un d'eux suffit à l'ouvrir. */
+  sousModules?: string[];
 };
+
+/** Tous les modules de permission d'un lien. */
+export const modulesDuLien = (l: NavLink) => (l.module ? [l.module, ...(l.sousModules ?? [])] : []);
 
 export type Espace = {
   id: "gestion" | "administration";
@@ -35,10 +41,6 @@ export type Espace = {
     texte: string;
     /** Bordure colorée au survol. */
     survol: string;
-    /** Motif de points de la vignette. */
-    motif: string;
-    /** Anneau décoratif de la vignette. */
-    anneau: string;
   };
   links: NavLink[];
 };
@@ -54,8 +56,6 @@ export const ESPACES: Espace[] = [
       douce: "bg-secondary/10 text-secondary",
       texte: "text-secondary",
       survol: "hover:border-secondary",
-      motif: "bg-[radial-gradient(var(--color-secondary)_1.5px,transparent_1.5px)]",
-      anneau: "border-accent",
     },
     links: [
       { href: "/admin/dashboard", label: "Tableau de bord", icon: LayoutDashboard },
@@ -78,13 +78,24 @@ export const ESPACES: Espace[] = [
       douce: "bg-primary/10 text-primary",
       texte: "text-primary",
       survol: "hover:border-primary",
-      motif: "bg-[radial-gradient(var(--color-primary)_1.5px,transparent_1.5px)]",
-      anneau: "border-secondary",
     },
     links: [
       { href: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, module: "users" },
       { href: "/admin/roles", label: "Rôles", icon: ShieldCheck, module: "roles" },
-      { href: "/admin/parametres", label: "Paramètres", icon: Settings, module: "communes" },
+      {
+        href: "/admin/unites-controle",
+        label: "Unités de contrôle",
+        icon: Siren,
+        module: "unites",
+        sousModules: ["categories"],
+      },
+      {
+        href: "/admin/parametres",
+        label: "Infos mairie",
+        icon: Settings,
+        module: "communes",
+        sousModules: ["identifiants"],
+      },
     ],
   },
 ];
@@ -97,16 +108,19 @@ export function peutVoir(user: SessionUser | null, module: string) {
 
 /** Espaces accessibles, avec seulement les liens autorisés. */
 export function espacesDe(user: SessionUser | null): Espace[] {
+  const lienVisible = (l: NavLink) => modulesDuLien(l).some((m) => peutVoir(user, m));
   return ESPACES.map((espace) => {
-    const modules = espace.links.filter((l) => l.module);
-    if (!modules.some((l) => peutVoir(user, l.module!))) return null;
-    return { ...espace, links: espace.links.filter((l) => !l.module || peutVoir(user, l.module)) };
+    if (!espace.links.some(lienVisible)) return null;
+    return { ...espace, links: espace.links.filter((l) => !l.module || lienVisible(l)) };
   }).filter((e): e is Espace => e !== null);
 }
 
+/** Modules de permission d'un espace, dans l'ordre du menu. */
+export const modulesDeLEspace = (espace: Espace) => espace.links.flatMap(modulesDuLien);
+
 /** Espaces ouverts par un jeu de permissions (au moins un module de l'espace en `voir`). */
 export function espacesDesPermissions(permissions: Permissions | undefined) {
-  return ESPACES.filter((e) => e.links.some((l) => l.module && permissions?.[l.module]?.voir));
+  return ESPACES.filter((e) => modulesDeLEspace(e).some((m) => permissions?.[m]?.voir));
 }
 
 export function accueilDe(espace: Espace) {
