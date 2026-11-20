@@ -33,7 +33,7 @@ export default function EspaceLayout({ children }: { children: React.ReactNode }
   return (
     <div className="flex min-h-screen flex-1 relative">
       {/* Sidebar desktop */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-surface lg:flex">
         <EspaceSidebar />
       </aside>
 
@@ -45,7 +45,7 @@ export default function EspaceLayout({ children }: { children: React.ReactNode }
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
-          <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-surface shadow-xl lg:hidden">
+          <aside className="fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-surface shadow-xl lg:hidden">
             {/* Le logo est déjà dans la sidebar : seul le bouton de fermeture est ajouté */}
             <button
               onClick={() => setSidebarOpen(false)}
@@ -60,7 +60,7 @@ export default function EspaceLayout({ children }: { children: React.ReactNode }
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-20 items-center gap-4 px-6 lg:px-10">
+        <header className="flex h-16 items-center gap-4 border-b border-border bg-surface px-6 lg:px-10">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
             className="icon-btn lg:hidden"
@@ -98,7 +98,7 @@ export default function EspaceLayout({ children }: { children: React.ReactNode }
             <LogOut className="size-5" />
           </button>
         </header>
-        <main className="flex-1 px-6 pb-10 lg:px-10">{children}</main>
+        <main className="flex-1 px-6 py-8 lg:px-10">{children}</main>
       </div>
     </div>
   );

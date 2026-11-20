@@ -20,13 +20,12 @@ import {
 import { readForm } from "@/lib/api";
 import { ESPACES, espacesDesPermissions, peutVoir } from "@/lib/espaces";
 import { useAction } from "@/lib/useAction";
-import { ACTIONS, MODULES, type Permissions, type Role } from "@/types";
+import { TOTAL_PERMISSIONS, type Permissions, type Role } from "@/types";
 import { useAuthStore, useRolesStore, useUsersStore } from "@/stores";
 
 const SUPER_ADMIN = "super_admin";
 // Profil réservé à l'espace propriétaire : aucune permission d'administration
 const PROPRIETAIRE = "proprietaire";
-const TOTAL_PERMISSIONS = Object.keys(MODULES).length * Object.keys(ACTIONS).length;
 
 const TEXTE_PROPRIETAIRE =
   "Ce rôle donne accès uniquement à l'espace propriétaire (/proprietaire). Il n'ouvre aucun module de l'administration : la gestion des propriétaires se fait par la mairie dans la page Propriétaires.";

@@ -130,7 +130,7 @@ function Carte({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg bg-surface shadow-sm">
+    <section className="card p-0">
       <h3 className="flex items-center gap-2 border-b border-border px-6 py-4 font-bold">
         <Icon className="size-5 text-primary" />
         {titre}
@@ -220,7 +220,7 @@ export default function MonProfil() {
   return (
     <div className="space-y-6">
       {/* En-tête : bandeau, photo, nom, statut et action principale */}
-      <section className="overflow-hidden rounded-lg bg-surface shadow-sm">
+      <section className="overflow-hidden card p-0">
         <div className="relative h-28 bg-primary sm:h-32">
           {/* Motif discret sur le bandeau */}
           <div
@@ -331,7 +331,7 @@ export default function MonProfil() {
 
         <aside className="space-y-6">
           {/* Avancement du profil */}
-          <section className="rounded-lg bg-surface p-6 shadow-sm">
+          <section className="card">
             <div className="flex items-center gap-5">
               <Anneau pct={pct} />
               <div>
@@ -373,7 +373,7 @@ export default function MonProfil() {
           </section>
 
           {/* Statut du dossier */}
-          <section className="rounded-lg bg-surface p-6 shadow-sm">
+          <section className="card">
             <p className="text-sm text-text-muted">Statut du dossier</p>
             <p className="mt-2 flex items-center gap-2 text-lg font-bold">
               <span

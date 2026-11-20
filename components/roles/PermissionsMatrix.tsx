@@ -1,7 +1,7 @@
 "use client";
 
 import { ESPACES, modulesDeLEspace } from "@/lib/espaces";
-import { ACTIONS, MODULES, type Permissions } from "@/types";
+import { ACTIONS, MODULES, actionsDuModule, type Permissions } from "@/types";
 
 type Module = keyof typeof MODULES;
 type Action = keyof typeof ACTIONS;
@@ -58,12 +58,14 @@ function Case({
 export default function PermissionsMatrix({ value, onChange, disabled }: PermissionsMatrixProps) {
   const coche = (m: string, a: string) => value[m]?.[a] === true;
   const nbCoches = (modules: string[]) =>
-    modules.reduce((n, m) => n + ACTIONS_LISTE.filter((a) => coche(m, a)).length, 0);
+    modules.reduce((n, m) => n + actionsDuModule(m).filter((a) => coche(m, a)).length, 0);
 
+  // Seules les actions qui existent pour le module sont accordées (journal : « Voir »)
   function definir(modules: string[], actions: string[], checked: boolean) {
     const suite = { ...value };
     for (const m of modules) {
-      suite[m] = { ...suite[m], ...Object.fromEntries(actions.map((a) => [a, checked])) };
+      const possibles = actions.filter((a) => (actionsDuModule(m) as string[]).includes(a));
+      suite[m] = { ...suite[m], ...Object.fromEntries(possibles.map((a) => [a, checked])) };
     }
     onChange(suite);
   }
@@ -72,7 +74,7 @@ export default function PermissionsMatrix({ value, onChange, disabled }: Permiss
     <div className="space-y-4">
       {GROUPES.map(({ espace, modules }) => {
         const Icon = espace.icon;
-        const total = modules.length * ACTIONS_LISTE.length;
+        const total = modules.reduce((n, m) => n + actionsDuModule(m).length, 0);
         const coches = nbCoches(modules);
 
         return (
@@ -119,25 +121,39 @@ export default function PermissionsMatrix({ value, onChange, disabled }: Permiss
               </thead>
               <tbody>
                 {modules.map((m) => {
-                  const nb = ACTIONS_LISTE.filter((a) => coche(m, a)).length;
+                  const possibles = actionsDuModule(m);
+                  const nb = possibles.filter((a) => coche(m, a)).length;
                   return (
                     <tr key={m}>
-                      <td className="font-medium">{MODULES[m]}</td>
+                      <td className="font-medium">
+                        {MODULES[m]}
+                        {possibles.length === 1 && possibles[0] === "voir" && (
+                          <span className="ml-2 text-xs font-normal text-text-muted">
+                            lecture seule
+                          </span>
+                        )}
+                      </td>
                       {ACTIONS_LISTE.map((a) => (
                         <td key={a} className="text-center">
-                          <Case
-                            checked={coche(m, a)}
-                            onChange={(checked) => definir([m], [a], checked)}
-                            label={`${MODULES[m]} : ${ACTIONS[a]}`}
-                            disabled={disabled}
-                            className="accent-primary"
-                          />
+                          {possibles.includes(a) ? (
+                            <Case
+                              checked={coche(m, a)}
+                              onChange={(checked) => definir([m], [a], checked)}
+                              label={`${MODULES[m]} : ${ACTIONS[a]}`}
+                              disabled={disabled}
+                              className="accent-primary"
+                            />
+                          ) : (
+                            <span className="text-text-muted" title="Action inexistante pour ce module">
+                              —
+                            </span>
+                          )}
                         </td>
                       ))}
                       <td className="text-center">
                         <Case
-                          checked={nb === ACTIONS_LISTE.length}
-                          partiel={nb > 0 && nb < ACTIONS_LISTE.length}
+                          checked={nb === possibles.length}
+                          partiel={nb > 0 && nb < possibles.length}
                           onChange={(checked) => definir([m], ACTIONS_LISTE, checked)}
                           label={`${MODULES[m]} : tout`}
                           disabled={disabled}

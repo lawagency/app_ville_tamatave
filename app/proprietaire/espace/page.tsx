@@ -31,8 +31,8 @@ type StatProps = {
 function Stat({ label, valeur, icon: Icon, aide, enAvant }: StatProps) {
   return (
     <div
-      className={`flex items-center gap-4 rounded-lg p-6 shadow-sm ${
-        enAvant ? "bg-primary text-white" : "bg-surface"
+      className={`flex items-center gap-4 rounded-lg border p-6 ${
+        enAvant ? "border-primary bg-primary text-white" : "border-border bg-surface"
       }`}
     >
       <span
@@ -107,7 +107,7 @@ export default function EspaceTableauDeBord() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <section className="rounded-lg bg-surface p-8 shadow-sm xl:col-span-2">
+        <section className="card p-8 xl:col-span-2">
           <p className="text-sm text-text-muted">Mon dossier</p>
           <h2 className="mt-1 text-2xl font-bold">
             {valide ? "Dossier validé" : "Dossier en cours"}
@@ -167,7 +167,7 @@ export default function EspaceTableauDeBord() {
           )}
         </section>
 
-        <section className="flex flex-col items-center rounded-lg bg-surface p-8 text-center shadow-sm">
+        <section className="card flex flex-col items-center p-8 text-center">
           <Avatar
             label={nom}
             photo={fichierUrl(fiche.photo_chemin)}

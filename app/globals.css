@@ -62,11 +62,22 @@
            rounded-[var(--radius-md)] focus:outline-none focus:ring-2 
            focus:ring-[var(--color-primary)] focus:border-transparent;
   }
+  /* Même hauteur pour texte, nombre, date et liste déroulante (les zones de texte restent libres) */
+  input.input-field,
+  select.input-field,
+  button.input-field {
+    @apply h-11;
+  }
 
-  /* Carte */
+  /* Carte : plate, bordure fine et ombre à peine visible */
   .card {
-    @apply bg-[var(--color-surface)] border border-gray-100 p-6 
-           rounded-[var(--radius-lg)] shadow-sm;
+    @apply bg-[var(--color-surface)] border border-border p-6
+           rounded-[var(--radius-lg)] shadow-[0_1px_2px_rgb(15_23_42/0.04)];
+  }
+
+  /* Séparateur sous chaque lien du menu latéral */
+  .nav-item {
+    @apply border-b border-border py-1;
   }
 
   /* Bouton discret */
@@ -127,6 +138,29 @@
   .table-base tbody tr.row-details > td {
     @apply px-8 py-6;
   }
+  /* Lignes colorées selon le type d'action (journal) : fond léger + liseré à gauche */
+  .table-base tbody tr.row-creation {
+    @apply bg-secondary/5 shadow-[inset_4px_0_0_var(--color-secondary)]
+           hover:bg-secondary/10 hover:shadow-[inset_4px_0_0_var(--color-secondary)];
+  }
+  .table-base tbody tr.row-modification {
+    @apply bg-primary/5 shadow-[inset_4px_0_0_var(--color-primary)]
+           hover:bg-primary/10 hover:shadow-[inset_4px_0_0_var(--color-primary)];
+  }
+  .table-base tbody tr.row-suppression {
+    @apply bg-danger/5 shadow-[inset_4px_0_0_var(--color-danger)]
+           hover:bg-danger/10 hover:shadow-[inset_4px_0_0_var(--color-danger)];
+  }
+  /* Ligne ouverte : fond un peu plus marqué, le liseré garde la couleur du type */
+  .table-base tbody tr.row-selected.row-creation {
+    @apply bg-secondary/15;
+  }
+  .table-base tbody tr.row-selected.row-modification {
+    @apply bg-primary/15;
+  }
+  .table-base tbody tr.row-selected.row-suppression {
+    @apply bg-danger/15;
+  }
 
   /* Pagination */
   .page-btn {
@@ -135,7 +169,7 @@
            disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-text-muted;
   }
   .page-btn-active {
-    @apply border-primary bg-primary text-white shadow-md hover:text-white;
+    @apply border-primary bg-primary text-white hover:text-white;
   }
 
   /* Badges */

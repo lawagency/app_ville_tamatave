@@ -20,7 +20,7 @@ export default function EspaceSwitcher({ courant, espaces, collapsed }: EspaceSw
 
   const etiquette = (
     <>
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-white/15 text-accent">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-white/15 text-accent">
         {Icon ? <Icon className="size-5" /> : <span className="font-extrabold">VT</span>}
       </span>
       {!collapsed && (
@@ -37,14 +37,15 @@ export default function EspaceSwitcher({ courant, espaces, collapsed }: EspaceSw
   );
 
   return (
-    <div className="relative shrink-0 bg-primary p-3 text-white">
+    // Même hauteur que la barre du haut (h-16), bordure basse comprise
+    <div className="relative flex h-16 shrink-0 items-center border-b border-primary bg-primary px-3 text-white">
       {plusieurs ? (
         <button
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-haspopup="menu"
           title={collapsed ? "Changer d'espace" : undefined}
-          className={`flex w-full items-center gap-3 rounded-md p-1.5 transition-colors hover:bg-white/10 ${
+          className={`flex w-full items-center gap-3 rounded-md p-1 transition-colors hover:bg-white/10 ${
             open ? "bg-white/10" : ""
           } ${collapsed ? "justify-center" : ""}`}
         >
@@ -52,7 +53,7 @@ export default function EspaceSwitcher({ courant, espaces, collapsed }: EspaceSw
           {!collapsed && <ChevronsUpDown className="size-4 shrink-0 text-white/60" />}
         </button>
       ) : (
-        <div className={`flex items-center gap-3 p-1.5 ${collapsed ? "justify-center" : ""}`}>
+        <div className={`flex w-full items-center gap-3 p-1 ${collapsed ? "justify-center" : ""}`}>
           {etiquette}
         </div>
       )}

@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Clock, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import LoadingButton from "@/components/LoadingButton";
 import PasswordInput from "@/components/PasswordInput";
 import PortailHeader from "@/components/proprietaire/PortailHeader";
 import { Field } from "@/components/ui";
-import { useAuthStore } from "@/stores";
-
-const EN_ATTENTE = "en attente de validation";
+import { ApiError } from "@/lib/api";
+import type { StatutUser } from "@/types";
+import { useAuthStore, useCompteNonActifStore, type ContactMairie } from "@/stores";
 
 export default function ProprietaireLogin() {
   const router = useRouter();
@@ -32,12 +32,19 @@ export default function ProprietaireLogin() {
       }
       router.replace("/proprietaire/espace");
     } catch (err) {
+      // Compte non actif (suspendu, en attente…) : page dédiée avec le statut et la mairie
+      if (err instanceof ApiError && err.donnees?.code === "COMPTE_NON_ACTIF") {
+        useCompteNonActifStore.getState().definir({
+          statut: err.donnees.statut as StatutUser,
+          mairie: (err.donnees.mairie as ContactMairie | null) ?? null,
+        });
+        router.push("/proprietaire/compte-non-actif");
+        return;
+      }
       setError((err as Error).message);
       setLoading(false);
     }
   }
-
-  const enAttente = error?.includes(EN_ATTENTE);
 
   return (
     <>
@@ -51,16 +58,7 @@ export default function ProprietaireLogin() {
           <p className="mt-1 text-sm text-text-muted">Accédez à votre espace propriétaire.</p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
-            {error &&
-              (enAttente ? (
-                <p className="alert-info flex items-start gap-2">
-                  <Clock className="mt-0.5 size-4 shrink-0" />
-                  Votre inscription est en cours de vérification par la mairie. Vous pourrez vous
-                  connecter dès qu&apos;elle sera validée.
-                </p>
-              ) : (
-                <p className="alert-error">{error}</p>
-              ))}
+            {error && <p className="alert-error">{error}</p>}
             <Field label="Email">
               <input
                 name="email"

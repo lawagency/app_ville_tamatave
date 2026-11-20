@@ -35,3 +35,15 @@ export type Proprietaire = {
   compte_statut: StatutUser | null;
   created_at: string;
 };
+
+/** Ligne de `proprietaires_statuts_historique` (`GET /proprietaires/:id/historique`). */
+export type HistoriqueStatut = {
+  id: number;
+  ancien_statut: StatutFiche | null;
+  nouveau_statut: StatutFiche;
+  justification: string;
+  modifie_par: number | null;
+  /** « Prénom Nom » de l'agent qui a changé le statut (jointure users). */
+  modifie_par_nom: string | null;
+  created_at: string;
+};

@@ -23,6 +23,10 @@ type DataTableProps<T> = {
   pageSize?: number;
   /** Contenu affiché sous la ligne cliquée. Un second clic referme. */
   renderDetails?: (row: T) => ReactNode;
+  /** Clic sur la ligne (ouvrir la fiche…), quand il n'y a pas de détails dépliables. */
+  onRowClick?: (row: T) => void;
+  /** Classe en plus sur la ligne (couleur selon le type…). */
+  rowClassName?: (row: T) => string;
 };
 
 export default function DataTable<T extends { id: number }>({
@@ -34,6 +38,8 @@ export default function DataTable<T extends { id: number }>({
   toolbar,
   pageSize = 10,
   renderDetails,
+  onRowClick,
+  rowClassName,
 }: DataTableProps<T>) {
   const [page, setPage] = useState(1);
   const [openId, setOpenId] = useState<number | null>(null);
@@ -82,12 +88,17 @@ export default function DataTable<T extends { id: number }>({
               )}
               {visibles.map((row) => {
                 const open = openId === row.id;
+                const onClick = renderDetails
+                  ? () => toggle(row.id)
+                  : onRowClick
+                    ? () => onRowClick(row)
+                    : undefined;
                 return (
                   <Fragment key={row.id}>
                     <tr
-                      onClick={renderDetails ? () => toggle(row.id) : undefined}
+                      onClick={onClick}
                       aria-expanded={renderDetails ? open : undefined}
-                      className={`${renderDetails ? "cursor-pointer" : ""} ${open ? "row-selected" : ""}`}
+                      className={`${onClick ? "cursor-pointer" : ""} ${open ? "row-selected" : ""} ${rowClassName?.(row) ?? ""}`}
                     >
                       {columns.map((c) => (
                         <td

@@ -38,9 +38,10 @@ export default function EspaceSidebar() {
     <div className="flex h-full flex-col">
       <Link
         href="/proprietaire"
-        className="flex items-center gap-3 border-b border-border px-6 py-6"
+        // Même hauteur que la barre du haut (h-16)
+        className="flex h-16 shrink-0 items-center gap-3 border-b border-border px-5"
       >
-        <span className="flex size-11 items-center justify-center rounded-md bg-primary text-lg font-extrabold text-accent">
+        <span className="flex size-9 items-center justify-center rounded-md bg-primary font-extrabold text-accent">
           VT
         </span>
         <span className="leading-tight">
@@ -49,35 +50,35 @@ export default function EspaceSidebar() {
         </span>
       </Link>
 
-      <nav className="flex-1 space-y-1 px-4 py-6">
-        {LIENS.map(({ href, label, icon: Icon, bientot }) =>
-          bientot ? (
-            <span
-              key={href}
-              className="flex cursor-not-allowed items-center gap-3 rounded-md px-4 py-3 text-text-muted/60"
-              title="Bientôt disponible"
-            >
-              <Icon className="size-5" strokeWidth={1.8} />
-              <span className="flex-1">{label}</span>
-              <span className="rounded-sm bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase">
-                Bientôt
+      <nav className="flex-1 px-3 py-3">
+        {LIENS.map(({ href, label, icon: Icon, bientot }) => (
+          <div key={href} className="nav-item">
+            {bientot ? (
+              <span
+                className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-3 py-2.5 text-text-muted/60"
+                title="Bientôt disponible"
+              >
+                <Icon className="size-5 shrink-0" strokeWidth={1.8} />
+                <span className="flex-1 whitespace-nowrap">{label}</span>
+                <span className="shrink-0 rounded-sm bg-background px-1 py-0.5 text-[10px] font-semibold uppercase">
+                  Bientôt
+                </span>
               </span>
-            </span>
-          ) : (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 rounded-md px-4 py-3 font-medium transition-colors ${
-                pathname === href
-                  ? "bg-primary text-white shadow-md"
-                  : "text-text-muted hover:bg-background hover:text-primary"
-              }`}
-            >
-              <Icon className="size-5" strokeWidth={1.8} />
-              {label}
-            </Link>
-          ),
-        )}
+            ) : (
+              <Link
+                href={href}
+                className={`flex items-center gap-2.5 rounded-md px-3 py-2.5 font-medium transition-colors ${
+                  pathname === href
+                    ? "bg-primary text-white"
+                    : "text-text-muted hover:bg-background hover:text-primary"
+                }`}
+              >
+                <Icon className="size-5 shrink-0" strokeWidth={1.8} />
+                {label}
+              </Link>
+            )}
+          </div>
+        ))}
       </nav>
 
       <div className="p-4">

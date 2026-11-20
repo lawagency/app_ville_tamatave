@@ -4,6 +4,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
+/** Erreur de l'API : garde le code HTTP et la réponse complète (champs en plus du message). */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly donnees: Record<string, unknown> | null,
+  ) {
+    super(message);
+  }
+}
+
 /** `body` en `FormData` : envoi multipart (fichiers), sinon JSON. */
 export async function api<T>(path: string, method: Method = "GET", body?: unknown): Promise<T> {
   const { token, logout } = useAuthStore.getState();
@@ -23,8 +34,10 @@ export async function api<T>(path: string, method: Method = "GET", body?: unknow
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     const message = data?.message;
-    throw new Error(
+    throw new ApiError(
       Array.isArray(message) ? message.join(", ") : (message ?? `Erreur ${res.status}`),
+      res.status,
+      data,
     );
   }
   return data as T;

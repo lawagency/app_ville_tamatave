@@ -1,7 +1,10 @@
 import {
   ClipboardCheck,
-  Landmark,
+  Contact,
+  ScrollText,
+  Settings2,
   Siren,
+  SlidersHorizontal,
   LayoutDashboard,
   Settings,
   ShieldCheck,
@@ -21,6 +24,8 @@ export type NavLink = {
   module?: string;
   /** Autres modules gérés dans la même page ; l'un d'eux suffit à l'ouvrir. */
   sousModules?: string[];
+  /** `configuration` : lien rangé à part, en bas du menu. */
+  section?: "configuration";
 };
 
 /** Tous les modules de permission d'un lien. */
@@ -65,14 +70,28 @@ export const ESPACES: Espace[] = [
         icon: UserRound,
         module: "proprietaires",
       },
+      { href: "/admin/chauffeurs", label: "Chauffeurs", icon: Contact, module: "chauffeurs" },
       { href: "/admin/controles", label: "Contrôles", icon: ClipboardCheck, module: "controles" },
+      {
+        href: "/admin/configuration",
+        label: "Configuration",
+        icon: SlidersHorizontal,
+        module: "types_documents",
+        sousModules: [
+          "types_documents_sous_types",
+          "types_vehicules",
+          "categories_vehicules",
+          "types_chauffeurs",
+        ],
+        section: "configuration",
+      },
     ],
   },
   {
     id: "administration",
     titre: "Administration",
     description: "Comptes utilisateurs, rôles et permissions, informations de la mairie.",
-    icon: Landmark,
+    icon: Settings2,
     couleur: {
       tuile: "bg-primary text-accent",
       douce: "bg-primary/10 text-primary",
@@ -96,6 +115,7 @@ export const ESPACES: Espace[] = [
         module: "communes",
         sousModules: ["identifiants"],
       },
+      { href: "/admin/journal", label: "Journal d'activité", icon: ScrollText, module: "journal" },
     ],
   },
 ];

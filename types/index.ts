@@ -6,3 +6,7 @@ export * from "./proprietaire";
 export * from "./controle";
 export * from "./uniteControle";
 export * from "./parametreIdentifiant";
+export * from "./journal";
+export * from "./document";
+export * from "./vehiculeConfig";
+export * from "./chauffeur";

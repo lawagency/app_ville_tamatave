@@ -45,7 +45,7 @@ export default function StatCard({
   );
 
   return href ? (
-    <Link href={href} className="card block transition-shadow hover:shadow-md">
+    <Link href={href} className="card block transition-colors hover:border-primary/40">
       {contenu}
     </Link>
   ) : (
