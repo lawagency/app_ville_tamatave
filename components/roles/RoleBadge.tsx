@@ -9,7 +9,7 @@ const COULEURS = [
   "bg-primary/10 text-primary border-primary/30",
   "bg-text-muted/15 text-text-main border-text-muted/30",
   "bg-secondary text-white border-secondary",
-  "bg-accent text-text-main border-accent",
+  "bg-accent text-on-accent border-accent",
 ];
 
 const SUPER_ADMIN = "bg-primary text-white border-primary";

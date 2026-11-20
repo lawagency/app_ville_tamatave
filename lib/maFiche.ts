@@ -1,7 +1,8 @@
+import { completionDe, type ChampACompleter } from "@/components/portail/ProfilElements";
 import type { Proprietaire } from "@/types";
 
 /** Informations que le propriétaire complète lui-même (base du pourcentage). */
-export const A_COMPLETER: { champ: keyof Proprietaire; label: string }[] = [
+export const A_COMPLETER: ChampACompleter<Proprietaire>[] = [
   { champ: "photo_chemin", label: "Photo" },
   { champ: "cin", label: "CIN" },
   { champ: "date_naissance", label: "Date de naissance" },
@@ -12,8 +13,4 @@ export const A_COMPLETER: { champ: keyof Proprietaire; label: string }[] = [
   { champ: "adresse", label: "Adresse" },
 ];
 
-export function completion(fiche: Proprietaire) {
-  const manquants = A_COMPLETER.filter(({ champ }) => !fiche[champ]);
-  const pct = Math.round(((A_COMPLETER.length - manquants.length) / A_COMPLETER.length) * 100);
-  return { manquants, pct };
-}
+export const completion = (fiche: Proprietaire) => completionDe(fiche, A_COMPLETER);

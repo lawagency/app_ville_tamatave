@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { Camera, Trash2, UserRound } from "lucide-react";
+import { Camera, Trash2, UserRound, type LucideIcon } from "lucide-react";
 import { toast } from "@/stores";
 
 const FORMATS = ["image/jpeg", "image/png", "image/webp"];
@@ -12,10 +12,20 @@ type PhotoInputProps = {
   /** Fichier choisi, envoyé après l'enregistrement de la fiche. */
   fichier: File | null;
   onChange: (fichier: File | null) => void;
+  /** Texte sous les boutons ; par défaut, photo d'identité. */
+  aide?: string;
+  /** Icône quand il n'y a pas encore de photo. */
+  icon?: LucideIcon;
 };
 
-/** Photo d'identité ronde : aperçu, choix ou glisser-déposer. */
-export default function PhotoInput({ actuelle, fichier, onChange }: PhotoInputProps) {
+/** Photo ronde (identité, véhicule) : aperçu, choix ou glisser-déposer. */
+export default function PhotoInput({
+  actuelle,
+  fichier,
+  onChange,
+  aide = "Photo d'identité, JPEG, PNG ou WebP.",
+  icon: Icon = UserRound,
+}: PhotoInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const apercu = useMemo(() => (fichier ? URL.createObjectURL(fichier) : null), [fichier]);
 
@@ -55,9 +65,9 @@ export default function PhotoInput({ actuelle, fichier, onChange }: PhotoInputPr
           // eslint-disable-next-line @next/next/no-img-element -- aperçu local ou image de l'API
           <img src={affichee} alt="Photo" className="size-full object-cover" />
         ) : (
-          <UserRound className="size-10" strokeWidth={1.5} />
+          <Icon className="size-10" strokeWidth={1.5} />
         )}
-        <span className="absolute inset-0 flex items-center justify-center bg-text-main/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="absolute inset-0 flex items-center justify-center bg-slate-950/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
           <Camera className="size-6" />
         </span>
       </button>
@@ -84,7 +94,7 @@ export default function PhotoInput({ actuelle, fichier, onChange }: PhotoInputPr
             </button>
           )}
         </div>
-        <p className="text-xs text-text-muted">Photo d&apos;identité, JPEG, PNG ou WebP.</p>
+        <p className="text-xs text-text-muted">{aide}</p>
       </div>
 
       <input

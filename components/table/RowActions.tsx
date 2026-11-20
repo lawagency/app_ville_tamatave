@@ -23,8 +23,10 @@ const COULEURS = {
 };
 
 const HAUTEUR_ITEM = 40;
+/** Espace gardé entre le menu et le bord de l'écran. */
+const MARGE = 12;
 
-type Position = { right: number } & ({ top: number } | { bottom: number });
+type Position = { right: number; maxHeight: number } & ({ top: number } | { bottom: number });
 
 /**
  * Bouton « ⋮ » qui ouvre la liste des actions de la ligne.
@@ -65,10 +67,14 @@ export default function RowActions({ actions }: { actions: RowAction[] }) {
     const rect = e.currentTarget.getBoundingClientRect();
     const right = window.innerWidth - rect.right;
     const hauteur = visibles.length * HAUTEUR_ITEM + 16;
+    const dessous = window.innerHeight - rect.bottom - MARGE;
+    const dessus = rect.top - MARGE;
+    // Vers le bas comme partout ; vers le haut seulement s'il manque la place en bas
+    // et qu'il y en a plus en haut. Un menu trop long défile au lieu de sortir de l'écran.
     setPosition(
-      rect.bottom + hauteur > window.innerHeight
-        ? { right, bottom: window.innerHeight - rect.top + 4 }
-        : { right, top: rect.bottom + 4 },
+      hauteur > dessous && dessus > dessous
+        ? { right, bottom: window.innerHeight - rect.top + 4, maxHeight: dessus }
+        : { right, top: rect.bottom + 4, maxHeight: dessous },
     );
   }
 
@@ -100,7 +106,7 @@ export default function RowActions({ actions }: { actions: RowAction[] }) {
           <div
             role="menu"
             style={position}
-            className="fixed z-40 min-w-48 rounded-md border border-border bg-surface p-1 shadow-lg"
+            className="fixed z-40 min-w-48 overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-lg"
           >
             {visibles.map((action) => {
               const { label, icon: Icon, variant, disabled, hint } = action;

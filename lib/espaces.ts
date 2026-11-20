@@ -1,6 +1,8 @@
 import {
+  Car,
   ClipboardCheck,
   Contact,
+  Home,
   ScrollText,
   Settings2,
   Siren,
@@ -32,7 +34,7 @@ export type NavLink = {
 export const modulesDuLien = (l: NavLink) => (l.module ? [l.module, ...(l.sousModules ?? [])] : []);
 
 export type Espace = {
-  id: "gestion" | "administration";
+  id: "gestion" | "administration" | "proprietaire";
   titre: string;
   description: string;
   icon: LucideIcon;
@@ -71,6 +73,7 @@ export const ESPACES: Espace[] = [
         module: "proprietaires",
       },
       { href: "/admin/chauffeurs", label: "Chauffeurs", icon: Contact, module: "chauffeurs" },
+      { href: "/admin/vehicules", label: "Véhicules", icon: Car, module: "vehicules" },
       { href: "/admin/controles", label: "Contrôles", icon: ClipboardCheck, module: "controles" },
       {
         href: "/admin/configuration",
@@ -119,6 +122,37 @@ export const ESPACES: Espace[] = [
     ],
   },
 ];
+
+/**
+ * Espace propriétaire (/proprietaire/espace) : hors de l'administration, ses modules
+ * ne sont accordés qu'au rôle `proprietaire` (page Rôles).
+ */
+export const ESPACE_PROPRIETAIRE: Espace = {
+  id: "proprietaire",
+  titre: "Espace propriétaire",
+  description: "Ce que le propriétaire gère lui-même depuis son espace.",
+  icon: Home,
+  couleur: {
+    tuile: "bg-accent text-on-accent",
+    douce: "bg-accent/20 text-text-main",
+    texte: "text-text-main",
+    survol: "hover:border-accent",
+  },
+  links: [
+    {
+      href: "/proprietaire/espace/chauffeurs",
+      label: "Mes chauffeurs",
+      icon: Contact,
+      module: "mes_chauffeurs",
+    },
+    {
+      href: "/proprietaire/espace/vehicules",
+      label: "Mes véhicules",
+      icon: Car,
+      module: "mes_vehicules",
+    },
+  ],
+};
 
 export function peutVoir(user: SessionUser | null, module: string) {
   if (!user) return false;

@@ -10,3 +10,4 @@ export * from "./journal";
 export * from "./document";
 export * from "./vehiculeConfig";
 export * from "./chauffeur";
+export * from "./vehicule";

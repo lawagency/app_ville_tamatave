@@ -68,7 +68,7 @@ export default function FormModal({
     <>
       <div
         onClick={pending ? undefined : onClose}
-        className={`fixed inset-0 z-40 bg-text-main/30 transition-opacity duration-200 ${
+        className={`fixed inset-0 z-40 bg-slate-950/30 transition-opacity duration-200 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />

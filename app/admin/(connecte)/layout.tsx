@@ -25,6 +25,11 @@ export default function ConnecteLayout({ children }: { children: React.ReactNode
     if (hydrated && !token) router.replace("/admin");
   }, [hydrated, token, router]);
 
+  // Les permissions du rôle peuvent avoir changé depuis la connexion (page Rôles)
+  useEffect(() => {
+    if (hydrated && token) useAuthStore.getState().rafraichir();
+  }, [hydrated, token]);
+
   if (!hydrated || !token) return null;
 
   return (

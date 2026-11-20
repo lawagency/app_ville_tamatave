@@ -97,7 +97,7 @@ export default function TypesChauffeursTab({ typesVehicules, onglets }: Props) {
               />
             ),
           },
-          { label: "Véhicule conduit", render: (t) => t.type_vehicule_nom },
+          { label: "Type de véhicule", render: (t) => t.type_vehicule_nom },
           {
             label: "Chauffeurs",
             render: (t) => <span className="font-semibold">{t.nombre_chauffeurs}</span>,
@@ -143,7 +143,7 @@ export default function TypesChauffeursTab({ typesVehicules, onglets }: Props) {
         pending={enregistrement.pending}
         formKey={editing?.id ?? "nouveau"}
       >
-        <Field label="Véhicule conduit *">
+        <Field label="Type de véhicule *">
           <select
             name="type_vehicule_id"
             required

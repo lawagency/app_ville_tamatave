@@ -1,70 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowRight,
-  Car,
-  CircleCheck,
-  Circle,
-  ClipboardList,
-  Hash,
-  MapPin,
-  QrCode,
-  ShieldCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight, Car, ClipboardList, Hash, MapPin, QrCode, ShieldCheck } from "lucide-react";
+import { BarreCompletion, Etape, Stat } from "@/components/portail/ProfilElements";
 import Skeleton from "@/components/Skeleton";
 import { Avatar } from "@/components/ui";
 import { fichierUrl, formatDate } from "@/lib/api";
 import { completion } from "@/lib/maFiche";
 import { STATUTS_FICHE } from "@/types";
 import { useAuthStore, useMaFicheStore } from "@/stores";
-
-type StatProps = {
-  label: string;
-  valeur: string;
-  icon: LucideIcon;
-  aide?: string;
-  enAvant?: boolean;
-};
-
-function Stat({ label, valeur, icon: Icon, aide, enAvant }: StatProps) {
-  return (
-    <div
-      className={`flex items-center gap-4 rounded-lg border p-6 ${
-        enAvant ? "border-primary bg-primary text-white" : "border-border bg-surface"
-      }`}
-    >
-      <span
-        className={`flex size-14 shrink-0 items-center justify-center rounded-full ${
-          enAvant ? "bg-white/15 text-accent" : "bg-primary/10 text-primary"
-        }`}
-      >
-        <Icon className="size-6" />
-      </span>
-      <div className="min-w-0">
-        <p className={`text-sm ${enAvant ? "text-white/70" : "text-text-muted"}`}>{label}</p>
-        <p className="mt-1 truncate text-2xl font-bold">{valeur}</p>
-        {aide && (
-          <p className={`text-xs ${enAvant ? "text-white/60" : "text-text-muted"}`}>{aide}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Etape({ fait, titre, texte }: { fait: boolean; titre: string; texte: string }) {
-  const Icon = fait ? CircleCheck : Circle;
-  return (
-    <li className="flex gap-4">
-      <Icon className={`mt-0.5 size-6 shrink-0 ${fait ? "text-secondary" : "text-border"}`} />
-      <div>
-        <p className={`font-semibold ${fait ? "text-text-main" : "text-text-muted"}`}>{titre}</p>
-        <p className="text-sm text-text-muted">{texte}</p>
-      </div>
-    </li>
-  );
-}
 
 /** Tableau de bord du propriétaire. */
 export default function EspaceTableauDeBord() {
@@ -114,20 +58,7 @@ export default function EspaceTableauDeBord() {
           </h2>
 
           <div className="mt-6">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold">Profil complété à {pct} %</span>
-              <span className="text-text-muted">
-                {manquants.length === 0
-                  ? "Complet"
-                  : `${manquants.length} information${manquants.length > 1 ? "s" : ""} à ajouter`}
-              </span>
-            </div>
-            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-background">
-              <div
-                className={`h-full rounded-full ${pct === 100 ? "bg-secondary" : "bg-accent"}`}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
+            <BarreCompletion pct={pct} manquants={manquants.length} />
           </div>
 
           <ol className="mt-8 space-y-5">

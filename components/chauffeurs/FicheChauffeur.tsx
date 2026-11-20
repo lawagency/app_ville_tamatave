@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
+  Briefcase,
   CalendarDays,
   Car,
   FileCheck2,
@@ -38,14 +39,15 @@ import { api, fichierUrl, formatDate } from "@/lib/api";
 import { afficherTelephone, formaterCin } from "@/lib/formats";
 import {
   STATUTS_CHAUFFEUR,
-  STATUTS_PROFESSIONNELS,
   type Chauffeur,
   type HistoriqueStatutChauffeur,
   type StatutChauffeur,
-  type StatutProfessionnel,
 } from "@/types";
-import { toast, useChauffeursStore } from "@/stores";
+import { useAuthStore } from "@/stores";
+import VehiculesLies, { useVehiculesLies } from "@/components/vehicules/VehiculesLies";
+import { peutVoir } from "@/lib/espaces";
 import ChauffeurFormModal from "./ChauffeurFormModal";
+import SituationChauffeur from "./SituationChauffeur";
 import {
   ACTIONS_STATUT_CHAUFFEUR,
   ChangerStatutChauffeurModal,
@@ -53,7 +55,7 @@ import {
   nomChauffeur,
 } from "./ChauffeurStatutModals";
 
-type Onglet = "informations" | "historique";
+type Onglet = "informations" | "historique" | "vehicules";
 
 function BadgeStatut({ statut }: { statut: StatutChauffeur }) {
   const { label, tone } = STATUTS_CHAUFFEUR[statut];
@@ -66,8 +68,17 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const voitVehicules = useAuthStore((s) => peutVoir(s.user, "vehicules"));
+  const demande = searchParams.get("onglet");
   const onglet: Onglet =
-    searchParams.get("onglet") === "historique" ? "historique" : "informations";
+    demande === "historique" || (demande === "vehicules" && voitVehicules)
+      ? demande
+      : "informations";
+  const { vehicules, erreur: erreurVehicules } = useVehiculesLies(
+    "chauffeur_id",
+    id,
+    voitVehicules,
+  );
 
   const [fiche, setFiche] = useState<Chauffeur | null>(null);
   const [erreur, setErreur] = useState<string>();
@@ -76,7 +87,9 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
   const [edition, setEdition] = useState<{ avecCompte: boolean } | null>(null);
   const [nouveauStatut, setNouveauStatut] = useState<StatutChauffeur | null>(null);
   const [listeNoire, setListeNoire] = useState(false);
-  const [situationEnCours, setSituationEnCours] = useState(false);
+  const peutModifier = useAuthStore(
+    (s) => s.user?.role === "super_admin" || s.user?.permissions?.chauffeurs?.modifier === true,
+  );
 
   const charger = useCallback(
     () =>
@@ -101,22 +114,8 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
   }, [charger, chargerHistorique]);
 
   function changerOnglet(o: string) {
-    if (o !== "informations" && o !== "historique") return;
+    if (o !== "informations" && o !== "historique" && o !== "vehicules") return;
     router.replace(o === "informations" ? pathname : `${pathname}?onglet=${o}`, { scroll: false });
-  }
-
-  /** Situation de travail : pas de justification, pas d'historique côté API. */
-  async function changerSituation(situation: StatutProfessionnel) {
-    setSituationEnCours(true);
-    try {
-      setFiche(
-        await useChauffeursStore.getState().update(Number(id), { statut_professionnel: situation }),
-      );
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSituationEnCours(false);
-    }
   }
 
   if (erreur) {
@@ -137,7 +136,13 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
   const ONGLETS: OngletFiche<string>[] = [
     { key: "informations", label: "Informations", icon: UserRound },
     { key: "historique", label: "Historique", icon: History, count: historique?.length },
-    { key: "vehicules", label: "Véhicules conduits", icon: Car, bientot: true },
+    {
+      key: "vehicules",
+      label: "Véhicules",
+      icon: Car,
+      count: vehicules?.length,
+      bientot: !voitVehicules,
+    },
     { key: "documents", label: "Documents", icon: FileCheck2, bientot: true },
   ];
 
@@ -242,19 +247,13 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
             {fiche.est_blackliste ? (
               <BadgeTon label="Liste noire" tone="danger" icon={ShieldBan} />
             ) : (
-              <select
-                aria-label="Situation du chauffeur"
-                value={fiche.statut_professionnel}
-                disabled={situationEnCours}
-                onChange={(e) => changerSituation(e.target.value as StatutProfessionnel)}
-                className="rounded-md border border-border bg-surface px-2 py-1 text-xs font-semibold"
-              >
-                {(Object.keys(STATUTS_PROFESSIONNELS) as StatutProfessionnel[]).map((s) => (
-                  <option key={s} value={s}>
-                    {STATUTS_PROFESSIONNELS[s].label}
-                  </option>
-                ))}
-              </select>
+              // Le propriétaire la gère depuis son espace, la mairie peut aussi la changer au guichet
+              <SituationChauffeur
+                chauffeur={fiche}
+                espace="mairie"
+                modifiable={peutModifier}
+                onChange={setFiche}
+              />
             )}
           </Resume>
           <Resume label="Compte">
@@ -303,7 +302,25 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
           <Carte titre="Conduite et contact" icon={Phone}>
             <dl className="grid gap-6 p-6 sm:grid-cols-2">
               <Info label="Type de chauffeur" valeur={fiche.type_chauffeur_nom} icon={Tag} />
-              <Info label="Véhicule conduit" valeur={fiche.type_vehicule_nom} icon={Car} />
+              {/* Type de véhicule du type de chauffeur, pas un véhicule attribué */}
+              <Info label="Type de véhicule" valeur={fiche.type_vehicule_nom} icon={Car} />
+              <Info
+                label="Propriétaire"
+                icon={Briefcase}
+                valeur={
+                  fiche.proprietaire_id && (
+                    <Link
+                      href={`/admin/proprietaires/${fiche.proprietaire_id}`}
+                      className="text-primary hover:underline"
+                    >
+                      {fiche.proprietaire_nom}{" "}
+                      <span className="font-mono text-xs text-text-muted">
+                        {fiche.proprietaire_identifiant}
+                      </span>
+                    </Link>
+                  )
+                }
+              />
               <Info label="Téléphone" valeur={afficherTelephone(fiche.telephone)} icon={Phone} />
               <Info label="Email" valeur={fiche.email} icon={Mail} />
               <Info label="Adresse" valeur={fiche.adresse} icon={MapPin} />
@@ -318,6 +335,8 @@ export default function FicheChauffeur({ params }: { params: Promise<{ id: strin
             </p>
           </Carte>
         </div>
+      ) : onglet === "vehicules" ? (
+        <VehiculesLies vehicules={vehicules} erreur={erreurVehicules} masquer="chauffeur" />
       ) : (
         <HistoriqueStatuts
           historique={historique}

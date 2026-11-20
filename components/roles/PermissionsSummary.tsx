@@ -1,14 +1,21 @@
-import { ESPACES, modulesDeLEspace } from "@/lib/espaces";
+import { ESPACES, modulesDeLEspace, type Espace } from "@/lib/espaces";
 import { ACTIONS, MODULES, type Permissions } from "@/types";
 
 type Module = keyof typeof MODULES;
 type Action = keyof typeof ACTIONS;
 
 /** Lecture seule : par espace, puis par module, les actions accordées. */
-export default function PermissionsSummary({ permissions }: { permissions: Permissions }) {
+export default function PermissionsSummary({
+  permissions,
+  espaces = ESPACES,
+}: {
+  permissions: Permissions;
+  /** Espaces affichés ; par défaut ceux de l'administration. */
+  espaces?: Espace[];
+}) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      {ESPACES.map((espace) => {
+      {espaces.map((espace) => {
         const Icon = espace.icon;
         const modules = modulesDeLEspace(espace).filter((m): m is Module => m in MODULES);
         const ouvert = modules.some((m) => permissions?.[m]?.voir);

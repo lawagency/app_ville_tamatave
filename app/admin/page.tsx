@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TrafficIllustration from "@/components/login/TrafficIllustration";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useAuthStore } from "@/stores";
 
 export default function LoginPage() {
@@ -39,6 +40,7 @@ export default function LoginPage() {
       <div className="absolute -bottom-40 -right-20 size-112 rounded-full bg-accent/90" />
       <div className="absolute top-1/3 -right-24 size-72 rounded-full bg-secondary/80" />
       <div className="absolute -bottom-24 left-1/4 size-64 rounded-full bg-primary-hover/70" />
+      <ThemeToggle className="absolute right-4 top-4 z-10 rounded-md bg-white/10 p-2 text-white transition-colors hover:bg-white/20" />
 
       <div className="relative grid w-full max-w-5xl overflow-hidden rounded-lg bg-surface shadow-2xl md:grid-cols-2">
         <div className="flex flex-col justify-center px-8 py-12 md:px-14">

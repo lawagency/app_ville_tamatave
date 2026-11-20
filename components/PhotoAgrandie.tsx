@@ -40,7 +40,7 @@ export default function PhotoAgrandie({ src, alt, children }: Props) {
         className="group relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
         {children}
-        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-text-main/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
           <ZoomIn className="size-5" />
         </span>
       </button>

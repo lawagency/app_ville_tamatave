@@ -1,23 +1,24 @@
 "use client";
 
-import { ESPACES, modulesDeLEspace } from "@/lib/espaces";
+import { ESPACES, modulesDeLEspace, type Espace } from "@/lib/espaces";
 import { ACTIONS, MODULES, actionsDuModule, type Permissions } from "@/types";
 
 type Module = keyof typeof MODULES;
 type Action = keyof typeof ACTIONS;
 
-const ACTIONS_LISTE = Object.keys(ACTIONS) as Action[];
-
 /** Modules de chaque espace, d'après le menu. */
-const GROUPES = ESPACES.map((espace) => ({
-  espace,
-  modules: modulesDeLEspace(espace).filter((m): m is Module => m in MODULES),
-}));
+export const groupesDe = (espaces: Espace[]) =>
+  espaces.map((espace) => ({
+    espace,
+    modules: modulesDeLEspace(espace).filter((m): m is Module => m in MODULES),
+  }));
 
 type PermissionsMatrixProps = {
   value: Permissions;
   onChange: (value: Permissions) => void;
   disabled?: boolean;
+  /** Espaces affichés ; par défaut ceux de l'administration. */
+  espaces?: Espace[];
 };
 
 /** Case à cocher qui peut afficher l'état « partiel ». */
@@ -55,7 +56,17 @@ function Case({
  * Permissions groupées par espace.
  * Cocher un espace donne tous ses modules avec toutes les actions ; on décoche ensuite au détail.
  */
-export default function PermissionsMatrix({ value, onChange, disabled }: PermissionsMatrixProps) {
+export default function PermissionsMatrix({
+  value,
+  onChange,
+  disabled,
+  espaces = ESPACES,
+}: PermissionsMatrixProps) {
+  const GROUPES = groupesDe(espaces);
+  // Colonnes : seules les actions qui existent dans au moins un module affiché
+  const ACTIONS_LISTE = (Object.keys(ACTIONS) as Action[]).filter((a) =>
+    GROUPES.some((g) => g.modules.some((m) => actionsDuModule(m).includes(a))),
+  );
   const coche = (m: string, a: string) => value[m]?.[a] === true;
   const nbCoches = (modules: string[]) =>
     modules.reduce((n, m) => n + actionsDuModule(m).filter((a) => coche(m, a)).length, 0);
@@ -144,7 +155,10 @@ export default function PermissionsMatrix({ value, onChange, disabled }: Permiss
                               className="accent-primary"
                             />
                           ) : (
-                            <span className="text-text-muted" title="Action inexistante pour ce module">
+                            <span
+                              className="text-text-muted"
+                              title="Action inexistante pour ce module"
+                            >
                               —
                             </span>
                           )}

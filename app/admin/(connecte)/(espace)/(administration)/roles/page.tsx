@@ -18,9 +18,14 @@ import {
   StatusDot,
 } from "@/components/ui";
 import { readForm } from "@/lib/api";
-import { ESPACES, espacesDesPermissions, peutVoir } from "@/lib/espaces";
+import { ESPACE_PROPRIETAIRE, ESPACES, espacesDesPermissions, peutVoir } from "@/lib/espaces";
 import { useAction } from "@/lib/useAction";
-import { TOTAL_PERMISSIONS, type Permissions, type Role } from "@/types";
+import {
+  TOTAL_PERMISSIONS,
+  TOTAL_PERMISSIONS_PROPRIETAIRE,
+  type Permissions,
+  type Role,
+} from "@/types";
 import { useAuthStore, useRolesStore, useUsersStore } from "@/stores";
 
 const SUPER_ADMIN = "super_admin";
@@ -28,7 +33,7 @@ const SUPER_ADMIN = "super_admin";
 const PROPRIETAIRE = "proprietaire";
 
 const TEXTE_PROPRIETAIRE =
-  "Ce rôle donne accès uniquement à l'espace propriétaire (/proprietaire). Il n'ouvre aucun module de l'administration : la gestion des propriétaires se fait par la mairie dans la page Propriétaires.";
+  "Ce rôle donne accès uniquement à l'espace propriétaire. Il n'ouvre aucun module de l'administration : cochez ce que le propriétaire peut gérer lui-même.";
 
 function EspaceProprietaire() {
   return (
@@ -167,7 +172,11 @@ export default function RolesPage() {
             label: "Permissions",
             render: (r) =>
               r.code === PROPRIETAIRE ? (
-                <span className="text-text-muted">Sans objet</span>
+                <Progress
+                  value={countPermissions(r.permissions)}
+                  max={TOTAL_PERMISSIONS_PROPRIETAIRE}
+                  label={`${countPermissions(r.permissions)}/${TOTAL_PERMISSIONS_PROPRIETAIRE}`}
+                />
               ) : r.code === SUPER_ADMIN ? (
                 <Progress value={1} max={1} tone="success" label="Total" />
               ) : (
@@ -220,7 +229,7 @@ export default function RolesPage() {
             <div>
               <p className="card-title mb-3">Permissions accordées</p>
               {r.code === PROPRIETAIRE ? (
-                <p className="alert-info">{TEXTE_PROPRIETAIRE}</p>
+                <PermissionsSummary permissions={r.permissions} espaces={[ESPACE_PROPRIETAIRE]} />
               ) : r.code === SUPER_ADMIN ? (
                 <p className="alert-info">Super administrateur : accès à tous les modules.</p>
               ) : (
@@ -286,7 +295,14 @@ export default function RolesPage() {
 
         <FormSection title="Espaces et permissions" icon={ShieldCheck} columns={1}>
           {isProprietaire ? (
-            <p className="alert-info">{TEXTE_PROPRIETAIRE}</p>
+            <>
+              <p className="alert-info">{TEXTE_PROPRIETAIRE}</p>
+              <PermissionsMatrix
+                value={permissions}
+                onChange={setPermissions}
+                espaces={[ESPACE_PROPRIETAIRE]}
+              />
+            </>
           ) : isSuperAdmin ? (
             <p className="alert-info">
               Le super administrateur a accès à tous les modules, ses permissions ne sont pas

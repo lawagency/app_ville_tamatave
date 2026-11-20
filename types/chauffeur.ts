@@ -14,13 +14,19 @@ export type StatutChauffeur = keyof typeof STATUTS_CHAUFFEUR;
 
 /** Situation de travail du chauffeur (colonne `chauffeurs.statut_professionnel`). */
 export const STATUTS_PROFESSIONNELS = {
-  disponible: { label: "Disponible", tone: "success" },
-  en_mission: { label: "En mission", tone: "primary" },
-  indisponible: { label: "Indisponible", tone: "muted" },
+  actif: { label: "Actif", tone: "success" },
+  inactif: { label: "Inactif", tone: "muted" },
   suspendu: { label: "Suspendu", tone: "danger" },
 } as const;
 
 export type StatutProfessionnel = keyof typeof STATUTS_PROFESSIONNELS;
+
+/** Libellé et ton de la situation ; une valeur inconnue s'affiche telle quelle. */
+export const situationDe = (c: { statut_professionnel: string }) =>
+  STATUTS_PROFESSIONNELS[c.statut_professionnel as StatutProfessionnel] ?? {
+    label: c.statut_professionnel,
+    tone: "muted" as const,
+  };
 
 /** Type de chauffeur (table `types_chauffeurs`) : « Joker » pour un cyclo-pousse… */
 export type TypeChauffeur = {
@@ -62,8 +68,18 @@ export type Chauffeur = {
   user_id: number | null;
   compte_email: string | null;
   compte_statut: StatutUser | null;
+  /** Propriétaire qui l'emploie (ajouté depuis l'espace propriétaire ou par la mairie). */
+  proprietaire_id: number | null;
+  proprietaire_identifiant: string | null;
+  proprietaire_nom: string | null;
   created_at: string;
 };
+
+/** Type actif proposé au propriétaire (`GET /chauffeurs/mes-chauffeurs/types`). */
+export type TypeChauffeurPropose = Pick<
+  TypeChauffeur,
+  "id" | "nom" | "type_vehicule_id" | "type_vehicule_nom"
+>;
 
 /** Ligne de `chauffeurs_statuts_historique` (`GET /chauffeurs/:id/historique`). */
 export type HistoriqueStatutChauffeur = {

@@ -28,7 +28,7 @@ export default function Modal({ open, title, onClose, children, size = "md" }: M
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-text-main/40" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-slate-950/40" onClick={onClose} />
       <div
         className={`pointer-events-none fixed inset-y-0 right-0 z-50 flex items-center justify-center p-6 transition-[left] duration-200 ${
           sidebarCollapsed ? "left-20" : "left-60"

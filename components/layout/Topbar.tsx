@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bell, ChevronDown, LogOut, Maximize, Menu, Minimize, Search } from "lucide-react";
 import { useAuthStore, useControlesStore, useProprietairesStore, useUiStore } from "@/stores";
 import { peutVoir } from "@/lib/espaces";
+import ThemeToggle from "@/components/ThemeToggle";
 import SearchBar from "./SearchBar";
 import { useAlertes } from "./useAlertes";
 
@@ -105,6 +106,7 @@ export default function Topbar() {
           </div>
 
           <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
             {voitControles && (
               <button
                 onClick={() => setNotificationsOpen(true)}

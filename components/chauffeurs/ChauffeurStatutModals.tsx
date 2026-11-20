@@ -87,7 +87,7 @@ export function ChangerStatutChauffeurModal({
 
 /**
  * Mise sur liste noire (avec la raison) ou retrait.
- * Sur liste noire, le chauffeur est suspendu ; au retrait, il redevient disponible.
+ * Sur liste noire, le chauffeur est suspendu ; au retrait, il redevient actif.
  */
 export function ListeNoireModal({
   chauffeur,
@@ -137,7 +137,7 @@ export function ListeNoireModal({
     >
       {retrait ? (
         <p className="text-sm">
-          Le chauffeur redeviendra <strong>disponible</strong>.
+          Le chauffeur redeviendra <strong>actif</strong>.
           {chauffeur.raison_blacklist && (
             <span className="mt-2 block rounded-md border-l-4 border-border bg-background px-3 py-2">
               Raison : {chauffeur.raison_blacklist}

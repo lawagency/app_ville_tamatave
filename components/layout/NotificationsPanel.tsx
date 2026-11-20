@@ -45,7 +45,7 @@ export default function NotificationsPanel() {
     <>
       <div
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-40 bg-text-main/20 transition-opacity ${
+        className={`fixed inset-0 z-40 bg-slate-950/20 transition-opacity ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       />

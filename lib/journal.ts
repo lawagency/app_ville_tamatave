@@ -21,7 +21,13 @@ import {
   MODULES,
   STATUTS_CHAUFFEUR,
   STATUTS_FICHE,
+  AUTORISATIONS_CIRCULATION,
+  STATUTS_PROFESSIONNELS,
+  STATUTS_VEHICULE,
+  type AutorisationCirculation,
+  type StatutVehicule,
   STATUTS_USER,
+  type StatutProfessionnel,
   type JournalActivite,
 } from "@/types";
 
@@ -51,6 +57,7 @@ const RESSOURCES: Record<string, { nom: string; icon: LucideIcon }> = {
   "types-chauffeurs": { nom: "le type de chauffeur", icon: Contact },
   "types-vehicules": { nom: "le type de véhicule", icon: Car },
   "categories-vehicules": { nom: "la catégorie de véhicule", icon: Layers3 },
+  vehicules: { nom: "le véhicule", icon: Car },
 };
 
 /** Nom lisible d'une ressource à partir de son id (listes déjà chargées), sinon `undefined`. */
@@ -97,6 +104,81 @@ export function decrire(e: JournalActivite, nomDe: NomDe): Description {
 
   const info = RESSOURCES[ressource] ?? { nom: ressource || "élément", icon: Settings2 };
   const base = { icon: info.icon, ressource, ressourceId: aId ? id : undefined };
+
+  // Espace propriétaire : /chauffeurs/mes-chauffeurs[/:id[/photo]]
+  if (ressource === "chauffeurs" && idBrut === "mes-chauffeurs") {
+    const [, , , detail] = e.url.split("?")[0].replace(/^\/+/, "").split("/");
+    const cId = Number(sous);
+    const cible = cId ? `le chauffeur ${nomDe("chauffeurs", cId) ?? `n° ${cId}`}` : "le chauffeur";
+    const avecFiche = { ...base, ressourceId: cId || undefined };
+    if (e.methode === "POST" && !sous) {
+      return { ...avecFiche, type: "creation", titre: `A ajouté le chauffeur ${nomComplet(d)}` };
+    }
+    if (e.methode === "DELETE") {
+      return { ...avecFiche, type: "suppression", titre: `A retiré ${cible} de ses chauffeurs` };
+    }
+    if (detail === "photo") {
+      return { ...avecFiche, type: "modification", titre: `A changé la photo ${de(cible)}` };
+    }
+    if (typeof d.statut_professionnel === "string" && Object.keys(d).length === 1) {
+      const situation =
+        STATUTS_PROFESSIONNELS[d.statut_professionnel as StatutProfessionnel]?.label ??
+        d.statut_professionnel;
+      return {
+        ...avecFiche,
+        type: "modification",
+        titre: `A changé la situation ${de(cible)} : ${situation}`,
+      };
+    }
+    return { ...avecFiche, type: "modification", titre: `A modifié ${cible}` };
+  }
+
+  // Véhicules : /vehicules[/mes-vehicules]/:id[/chauffeur|/proprietaire|/photo]
+  if (ressource === "vehicules") {
+    const proprietaire = idBrut === "mes-vehicules";
+    const segments = e.url.split("?")[0].replace(/^\/+/, "").split("/");
+    const vId = Number(proprietaire ? segments[2] : idBrut);
+    const detail = proprietaire ? segments[3] : sous;
+    const cible = vId ? `le véhicule ${nomDe("vehicules", vId) ?? `n° ${vId}`}` : "le véhicule";
+    const avecFiche = { ...base, ressourceId: vId || undefined };
+    const immat = typeof d.immatriculation === "string" ? ` ${d.immatriculation}` : "";
+
+    if (e.methode === "POST" && !vId) {
+      return { ...avecFiche, type: "creation", titre: `A enregistré le véhicule${immat}` };
+    }
+    if (detail === "chauffeur") {
+      return {
+        ...avecFiche,
+        type: "modification",
+        titre:
+          e.methode === "DELETE"
+            ? `A retiré le chauffeur ${de(cible)}`
+            : `A attribué un chauffeur au ${cible.slice(3)}`,
+      };
+    }
+    if (detail === "proprietaire") {
+      return { ...avecFiche, type: "modification", titre: `A changé le propriétaire ${de(cible)}` };
+    }
+    if (detail === "photo") {
+      return { ...avecFiche, type: "modification", titre: `A changé la photo ${de(cible)}` };
+    }
+    if (e.methode === "DELETE") return { ...avecFiche, type, titre: `A supprimé ${cible}` };
+    if (typeof d.statut === "string") {
+      const statut = STATUTS_VEHICULE[d.statut as StatutVehicule]?.label ?? d.statut;
+      return { ...avecFiche, type, titre: `A changé le statut ${de(cible)} : ${statut}` };
+    }
+    if (typeof d.autorisation_circulation === "string" && Object.keys(d).length === 1) {
+      const autorisation =
+        AUTORISATIONS_CIRCULATION[d.autorisation_circulation as AutorisationCirculation]?.label ??
+        d.autorisation_circulation;
+      return {
+        ...avecFiche,
+        type,
+        titre: `A changé l'autorisation de circuler ${de(cible)} : ${autorisation}`,
+      };
+    }
+    return { ...avecFiche, type: "modification", titre: `A modifié ${cible}` };
+  }
 
   if ((ressource === "proprietaires" || ressource === "chauffeurs") && idBrut === "moi") {
     return {

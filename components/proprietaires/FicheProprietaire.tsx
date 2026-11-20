@@ -36,13 +36,16 @@ import StatutBadge from "@/components/users/StatutBadge";
 import { Avatar } from "@/components/ui";
 import { api, fichierUrl, formatDate } from "@/lib/api";
 import { afficherTelephone, formaterCin } from "@/lib/formats";
+import VehiculesLies, { useVehiculesLies } from "@/components/vehicules/VehiculesLies";
+import { peutVoir } from "@/lib/espaces";
 import { STATUTS_FICHE, type HistoriqueStatut, type Proprietaire, type StatutFiche } from "@/types";
+import { useAuthStore } from "@/stores";
 import ChangerStatutModal, { ACTIONS_STATUT, statutDe } from "./ChangerStatutModal";
 import ProprietaireFormModal from "./ProprietaireFormModal";
 
 export { FicheSkeleton };
 
-type Onglet = "informations" | "historique";
+type Onglet = "informations" | "historique" | "vehicules";
 
 /** Badge coloré du statut de la fiche. */
 function BadgeStatut({ statut }: { statut: StatutFiche }) {
@@ -56,8 +59,17 @@ export default function FicheProprietaire({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const voitVehicules = useAuthStore((s) => peutVoir(s.user, "vehicules"));
+  const demande = searchParams.get("onglet");
   const onglet: Onglet =
-    searchParams.get("onglet") === "historique" ? "historique" : "informations";
+    demande === "historique" || (demande === "vehicules" && voitVehicules)
+      ? demande
+      : "informations";
+  const { vehicules, erreur: erreurVehicules } = useVehiculesLies(
+    "proprietaire_id",
+    id,
+    voitVehicules,
+  );
 
   const [fiche, setFiche] = useState<Proprietaire | null>(null);
   const [erreur, setErreur] = useState<string>();
@@ -83,7 +95,7 @@ export default function FicheProprietaire({ params }: { params: Promise<{ id: st
   }, [id, chargerHistorique]);
 
   function changerOnglet(o: string) {
-    if (o !== "informations" && o !== "historique") return;
+    if (o !== "informations" && o !== "historique" && o !== "vehicules") return;
     router.replace(o === "informations" ? pathname : `${pathname}?onglet=${o}`, { scroll: false });
   }
 
@@ -106,7 +118,13 @@ export default function FicheProprietaire({ params }: { params: Promise<{ id: st
   const ONGLETS: OngletFiche<string>[] = [
     { key: "informations", label: "Informations", icon: UserRound },
     { key: "historique", label: "Historique", icon: History, count: historique?.length },
-    { key: "vehicules", label: "Véhicules", icon: Car, bientot: true },
+    {
+      key: "vehicules",
+      label: "Véhicules",
+      icon: Car,
+      count: vehicules?.length,
+      bientot: !voitVehicules,
+    },
     { key: "documents", label: "Documents", icon: FileCheck2, bientot: true },
   ];
 
@@ -247,6 +265,8 @@ export default function FicheProprietaire({ params }: { params: Promise<{ id: st
             </p>
           </Carte>
         </div>
+      ) : onglet === "vehicules" ? (
+        <VehiculesLies vehicules={vehicules} erreur={erreurVehicules} masquer="proprietaire" />
       ) : (
         <HistoriqueStatuts
           historique={historique}

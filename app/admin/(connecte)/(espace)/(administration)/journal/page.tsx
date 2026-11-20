@@ -19,6 +19,7 @@ import type { JournalActivite } from "@/types";
 import {
   useAuthStore,
   useCategoriesServicesStore,
+  useVehiculesStore,
   useChauffeursStore,
   useJournalStore,
   useProprietairesStore,
@@ -68,6 +69,7 @@ const LISTES = [
   { ressource: "roles", module: "roles", store: useRolesStore },
   { ressource: "unites-controle", module: "unites", store: useUnitesControleStore },
   { ressource: "categories-services", module: "categories", store: useCategoriesServicesStore },
+  { ressource: "vehicules", module: "vehicules", store: useVehiculesStore },
 ] as const;
 
 type Nommable = { id: number; nom?: string; prenom?: string };
@@ -96,6 +98,7 @@ export default function JournalPage() {
   const roles = useRolesStore((s) => s.items);
   const unites = useUnitesControleStore((s) => s.items);
   const categories = useCategoriesServicesStore((s) => s.items);
+  const vehicules = useVehiculesStore((s) => s.items);
 
   useEffect(() => {
     useJournalStore.getState().fetchAll({ force: true });
@@ -111,6 +114,8 @@ export default function JournalPage() {
     roles,
     "unites-controle": unites,
     "categories-services": categories,
+    // Un véhicule se nomme par son immatriculation
+    vehicules: vehicules.map((v) => ({ id: v.id, nom: v.immatriculation })),
   };
   const nomDe: NomDe = (ressource, id) => {
     const item = listes[ressource]?.find((i) => Number(i.id) === id);
@@ -292,7 +297,9 @@ function DetailJournal({
             )}
           </p>
         </div>
-        {(ressource === "proprietaires" || ressource === "chauffeurs") &&
+        {(ressource === "proprietaires" ||
+          ressource === "chauffeurs" ||
+          ressource === "vehicules") &&
           ressourceId &&
           l.description.type !== "suppression" && (
             <Link

@@ -57,7 +57,7 @@ export default function MonthlyBarChart({ data, unit }: { data: BarDatum[]; unit
                 />
                 {hover === i && (
                   <div
-                    className="pointer-events-none absolute z-10 -translate-y-2 whitespace-nowrap rounded-md bg-text-main px-2 py-1 text-xs text-white shadow"
+                    className="pointer-events-none absolute z-10 -translate-y-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs text-white dark:bg-slate-700 shadow"
                     style={{ bottom: `${(d.value / max) * 100}%` }}
                   >
                     <span className="font-semibold">{d.value}</span> {unit} · {d.label}

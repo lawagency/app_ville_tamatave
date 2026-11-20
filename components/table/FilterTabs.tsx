@@ -17,9 +17,9 @@ type FilterTabsProps<K extends string> = {
 const STYLES: Record<Tone, { active: string; count: string }> = {
   primary: { active: "bg-primary text-white", count: "bg-primary/10 text-primary" },
   success: { active: "bg-secondary text-white", count: "bg-secondary/15 text-secondary" },
-  warning: { active: "bg-accent text-text-main", count: "bg-accent/25 text-text-main" },
+  warning: { active: "bg-accent text-on-accent", count: "bg-accent/25 text-text-main" },
   danger: { active: "bg-danger text-white", count: "bg-danger/10 text-danger" },
-  muted: { active: "bg-text-muted text-white", count: "bg-border text-text-muted" },
+  muted: { active: "bg-text-muted text-surface", count: "bg-border text-text-muted" },
 };
 
 /** Onglets de filtre avec compteur : un clic filtre la liste. */

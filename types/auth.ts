@@ -4,7 +4,7 @@ export type SessionUser = {
   nom: string;
   prenom: string;
   role: string;
-  /** Permissions du rôle, renvoyées par `/auth/login`. */
+  /** Permissions du rôle, renvoyées par `/auth/login` puis relues par `/auth/moi`. */
   permissions?: Permissions;
 };
 

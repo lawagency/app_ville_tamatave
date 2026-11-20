@@ -11,19 +11,22 @@ import {
   ListeNoireModal,
   nomChauffeur,
 } from "@/components/chauffeurs/ChauffeurStatutModals";
+import SituationChauffeur from "@/components/chauffeurs/SituationChauffeur";
 import { ConfirmDialog } from "@/components/Modal";
 import StatutBadge from "@/components/users/StatutBadge";
-import { CellTitle, DataTable, FilterTabs, PageHeader, RowActions, StatusDot } from "@/components/ui";
+import {
+  CellTitle,
+  DataTable,
+  FilterTabs,
+  PageHeader,
+  RowActions,
+  StatusDot,
+} from "@/components/ui";
 import { fichierUrl } from "@/lib/api";
 import { afficherTelephone, chiffres } from "@/lib/formats";
 import { useAction } from "@/lib/useAction";
-import {
-  STATUTS_CHAUFFEUR,
-  STATUTS_PROFESSIONNELS,
-  type Chauffeur,
-  type StatutChauffeur,
-} from "@/types";
-import { useChauffeursStore } from "@/stores";
+import { STATUTS_CHAUFFEUR, type Chauffeur, type StatutChauffeur } from "@/types";
+import { useAuthStore, useChauffeursStore } from "@/stores";
 
 type Formulaire = { chauffeur: Chauffeur | null; avecCompte: boolean };
 type Filtre = "tous" | "actif" | "en_attente" | "liste_noire";
@@ -38,6 +41,9 @@ const FILTRES: Record<Filtre, (c: Chauffeur) => boolean> = {
 export default function ChauffeursPage() {
   const router = useRouter();
   const chauffeurs = useChauffeursStore();
+  const peutModifier = useAuthStore(
+    (s) => s.user?.role === "super_admin" || s.user?.permissions?.chauffeurs?.modifier === true,
+  );
   const [search, setSearch] = useState("");
   const [filtre, setFiltre] = useState<Filtre>("tous");
   const [formulaire, setFormulaire] = useState<Formulaire | null>(null);
@@ -55,7 +61,16 @@ export default function ChauffeursPage() {
 
   const q = search.trim().toLowerCase();
   const trouves = chauffeurs.items.filter((c) =>
-    [c.identifiant, c.nom, c.prenom, c.telephone, c.cin, c.type_chauffeur_nom].some(
+    [
+      c.identifiant,
+      c.nom,
+      c.prenom,
+      c.telephone,
+      c.cin,
+      c.type_chauffeur_nom,
+      c.proprietaire_nom,
+      c.proprietaire_identifiant,
+    ].some(
       (v) =>
         v?.toLowerCase().includes(q) ||
         // Recherche par chiffres : « 034 12 », « 3012456 »… quel que soit le format saisi
@@ -126,7 +141,7 @@ export default function ChauffeursPage() {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Nom, identifiant, CIN, téléphone ou type…"
+                placeholder="Nom, identifiant, CIN, téléphone, type ou propriétaire…"
                 className="input-field pl-9"
               />
             </div>
@@ -162,6 +177,22 @@ export default function ChauffeursPage() {
                 <span className="text-text-muted">—</span>
               ),
           },
+          {
+            label: "Propriétaire",
+            render: (c) =>
+              c.proprietaire_id ? (
+                <Link
+                  href={`/admin/proprietaires/${c.proprietaire_id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="hover:text-primary hover:underline"
+                >
+                  <p className="font-medium">{c.proprietaire_nom}</p>
+                  <p className="text-xs text-text-muted">{c.proprietaire_identifiant}</p>
+                </Link>
+              ) : (
+                <span className="text-text-muted">—</span>
+              ),
+          },
           { label: "Téléphone", render: (c) => afficherTelephone(c.telephone) || "—" },
           {
             label: "Compte",
@@ -181,11 +212,10 @@ export default function ChauffeursPage() {
           },
           {
             label: "Situation",
-            render: (c) => {
-              if (c.est_blackliste) return <StatusDot tone="danger" label="Liste noire" />;
-              const { label, tone } = STATUTS_PROFESSIONNELS[c.statut_professionnel];
-              return <StatusDot tone={tone} label={label} />;
-            },
+            // Modifiable au guichet par la mairie, comme par le propriétaire dans son espace
+            render: (c) => (
+              <SituationChauffeur chauffeur={c} espace="mairie" modifiable={peutModifier} />
+            ),
           },
           {
             label: "Actions",
@@ -206,13 +236,11 @@ export default function ChauffeursPage() {
                     icon: Pencil,
                     onClick: () => setFormulaire({ chauffeur: c, avecCompte: false }),
                   },
-                  ...(Object.keys(ACTIONS_STATUT_CHAUFFEUR) as StatutChauffeur[]).map(
-                    (statut) => ({
-                      ...ACTIONS_STATUT_CHAUFFEUR[statut],
-                      visible: statut !== c.statut,
-                      onClick: () => setChangement({ chauffeur: c, statut }),
-                    }),
-                  ),
+                  ...(Object.keys(ACTIONS_STATUT_CHAUFFEUR) as StatutChauffeur[]).map((statut) => ({
+                    ...ACTIONS_STATUT_CHAUFFEUR[statut],
+                    visible: statut !== c.statut,
+                    onClick: () => setChangement({ chauffeur: c, statut }),
+                  })),
                   c.est_blackliste
                     ? {
                         label: "Retirer de la liste noire",

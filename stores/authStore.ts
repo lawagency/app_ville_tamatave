@@ -10,12 +10,14 @@ type AuthState = {
   /** Passe à `true` une fois la session relue depuis localStorage. */
   hydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  /** Relit l'utilisateur et les permissions actuelles de son rôle (modifiables par la mairie). */
+  rafraichir: () => Promise<void>;
   logout: () => void;
 };
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
       user: null,
       hydrated: false,
@@ -26,6 +28,16 @@ export const useAuthStore = create<AuthState>()(
           password,
         });
         set({ token: res.access_token, user: res.user });
+      },
+
+      rafraichir: async () => {
+        if (!get().token) return;
+        try {
+          const user = await api<SessionUser>("/auth/moi");
+          set({ user: { ...get().user, ...user } });
+        } catch {
+          // Hors ligne ou API indisponible : on garde la session telle quelle
+        }
       },
 
       logout: () => {
